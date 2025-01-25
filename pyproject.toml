@@ -1,0 +1,18 @@
+[project]
+name = "timetracker"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "flask-bootstrap>=3.3.7.1",
+    "flask-wtf>=1.2.2",
+    "sqlalchemy>=2.0.37",
+]
+
+[dependency-groups]
+dev = [
+    "flask>=3.1.0",
+    "pytest>=8.3.4",
+    "ruff>=0.9.3",
+]
