@@ -1,11 +1,8 @@
 import datetime
 
 from flask_sqlalchemy import SQLAlchemy
-from flask_wtf import FlaskForm
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
-from wtforms import IntegerField, SelectField, StringField, SubmitField
-from wtforms.validators import DataRequired, Optional
 
 db = SQLAlchemy()
 
@@ -32,14 +29,3 @@ class CommonTimeUse(db.Model):
 
     id = Column(Integer, primary_key=True)
     description = Column(String, nullable=False, unique=True)
-
-
-class TimeEntryForm(FlaskForm):
-    """Form for creating and editing time entries."""
-
-    date = StringField('Date', validators=[DataRequired()])
-    start_time = IntegerField('Start Time (Minutes Past Midnight)', validators=[DataRequired()])
-    duration = IntegerField('Duration (Minutes, 15-min increments)', validators=[DataRequired()])
-    common_use = SelectField('Common Use', coerce=int, validators=[Optional()])
-    description = StringField('Custom Description', validators=[Optional()])
-    submit = SubmitField('Save Entry')
