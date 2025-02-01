@@ -1,15 +1,18 @@
-from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, SelectField, SubmitField
-from wtforms.validators import DataRequired, Optional
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
 import datetime
 
-Base = declarative_base()
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import FlaskForm
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
+from wtforms import IntegerField, SelectField, StringField, SubmitField
+from wtforms.validators import DataRequired, Optional
 
-class TimeEntry(Base):
+db = SQLAlchemy()
+
+
+class TimeEntry(db.Model):
     """Model for storing time tracking entries."""
+
     __tablename__ = 'time_entries'
 
     id = Column(Integer, primary_key=True)
@@ -21,15 +24,19 @@ class TimeEntry(Base):
 
     common_use = relationship('CommonTimeUse')
 
-class CommonTimeUse(Base):
+
+class CommonTimeUse(db.Model):
     """Model for storing predefined common time usage descriptions."""
+
     __tablename__ = 'common_time_uses'
 
     id = Column(Integer, primary_key=True)
     description = Column(String, nullable=False, unique=True)
 
+
 class TimeEntryForm(FlaskForm):
     """Form for creating and editing time entries."""
+
     date = StringField('Date', validators=[DataRequired()])
     start_time = IntegerField('Start Time (Minutes Past Midnight)', validators=[DataRequired()])
     duration = IntegerField('Duration (Minutes, 15-min increments)', validators=[DataRequired()])

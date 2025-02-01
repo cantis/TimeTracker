@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.models import TimeEntry, CommonTimeUse, TimeEntryForm
-from app.app import db
+from app.models import db  # Import db from the new module
 from datetime import datetime
 
 home_bp = Blueprint('home', __name__)

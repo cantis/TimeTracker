@@ -1,6 +1,7 @@
 import pytest
 import os
-from app.app import create_app, db
+from app.app import create_app
+from app.db import db  # Import db from the new module
 from app.models import Base, CommonTimeUse
 
 @pytest.fixture
