@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime
+
 from flask import Blueprint, current_app, redirect, render_template, request, url_for
 from flask_wtf import FlaskForm
 from wtforms import IntegerField, SelectField, StringField, SubmitField
@@ -26,7 +27,9 @@ class AddTimeEntryForm(FlaskForm):
 def index() -> str:
     date_filter = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     entries = TimeEntry.query.filter(TimeEntry.date.cast(db.Date) == date_filter).order_by(TimeEntry.start_time).all()
-    return render_template('home/list_entries.html', entries=entries)
+    
+    operating_date = datetime.strptime(date_filter, '%Y-%m-%d')
+    return render_template('home/main_entry.html', entries=entries, operating_date=operating_date)
 
 
 @home_bp.route('/add', methods=['GET', 'POST'])
@@ -43,7 +46,9 @@ def add_entry() -> str:
 
         # Default the start time to be the end of the most recent entry for today
         today = datetime.now().strftime('%Y-%m-%d')
-        latest_entry = TimeEntry.query.filter(TimeEntry.date.cast(db.Date) == today).order_by(TimeEntry.start_time.desc()).first()
+        latest_entry = (
+            TimeEntry.query.filter(TimeEntry.date.cast(db.Date) == today).order_by(TimeEntry.start_time.desc()).first()
+        )
         if latest_entry:
             form.start_time.data = latest_entry.start_time + latest_entry.duration
         else:
