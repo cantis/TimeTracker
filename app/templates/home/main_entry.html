@@ -108,6 +108,22 @@
 
                         document.getElementById('from_time').addEventListener('change', calculateDuration);
                         document.getElementById('to_time').addEventListener('change', calculateDuration);
+
+                        function setDefaultTime() {
+                            const now = new Date();
+                            const currentHour = now.getHours();
+                            const currentMinute = now.getMinutes();
+                            const formattedMinute = currentMinute - (currentMinute % 15); // Round down to nearest 15 minutes
+
+                            if (currentHour >= 7 && currentHour < 19) {
+                                const formattedHour = currentHour % 12 === 0 ? 12 : currentHour % 12;
+                                const amPm = currentHour < 12 ? 'AM' : 'PM';
+                                const defaultTime = `${currentHour}:${formattedMinute.toString().padStart(2, '0')}`;
+                                document.getElementById('from_time').value = defaultTime;
+                            }
+                        }
+
+                        document.addEventListener('DOMContentLoaded', setDefaultTime);
                     </script>
                 </div>
             </div>
