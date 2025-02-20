@@ -27,9 +27,15 @@ class AddTimeEntryForm(FlaskForm):
 def index() -> str:
     date_filter = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     entries = TimeEntry.query.filter(TimeEntry.date.cast(db.Date) == date_filter).order_by(TimeEntry.start_time).all()
-    
     operating_date = datetime.strptime(date_filter, '%Y-%m-%d')
-    return render_template('home/main_entry.html', entries=entries, operating_date=operating_date)
+    form = AddTimeEntryForm()
+    form.date.data = date_filter
+    try:
+        return render_template('home/main_entry.html', entries=entries, operating_date=operating_date, form=form)
+    except Exception as e:
+        current_app.logger.error(f"Error fetching time entries: {e}")
+        entries = []
+
 
 
 @home_bp.route('/add', methods=['GET', 'POST'])

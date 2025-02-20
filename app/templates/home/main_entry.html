@@ -20,42 +20,36 @@
                     <!-- From Time -->
                     <div class="col-auto">
                         <h5>from</h5>
-                        <div class="d-flex">
-                            <div>
-                                <select class="form-control-sm" id="from_hour" name="from_hour">
-                                    {% for hour in [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6] %}
-                                    <option value="{{ hour }}">{{ hour }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="ms-1">
-                                <select class="form-control-sm" id="from_minute" name="from_minute">
-                                    {% for minute in [0, 15, 30, 45] %}
-                                    <option value="{{ minute }}">{{ minute }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
+                        <select class="form-control-sm" id="from_time" name="from_time">
+                            {% for hour in range(7, 19) %}
+                            {% for minute in [0, 15, 30, 45] %}
+                            {% set display_hour = hour % 12 %}
+                            {% if display_hour == 0 %}
+                            {% set display_hour = 12 %}
+                            {% endif %}
+                            {% set am_pm = "AM" if hour < 12 else "PM" %} <option
+                                value="{{ hour }}:{{ '%02d' % minute }}">{{ display_hour }}:{{ '%02d' % minute }} {{
+                                am_pm }}</option>
+                                {% endfor %}
+                                {% endfor %}
+                        </select>
                     </div>
                     <!-- To Time -->
                     <div class="col-auto">
                         <h5>to</h5>
-                        <div class="d-flex">
-                            <div>
-                                <select class="form-control-sm" id="to_hour" name="to_hour">
-                                    {% for hour in [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6] %}
-                                    <option value="{{ hour }}">{{ hour }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="ms-1">
-                                <select class="form-control-sm" id="to_minute" name="to_minute">
-                                    {% for minute in [0, 15, 30, 45] %}
-                                    <option value="{{ minute }}">{{ minute }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
+                        <select class="form-control-sm" id="to_time" name="to_time">
+                            {% for hour in range(7, 19) %}
+                            {% for minute in [0, 15, 30, 45] %}
+                            {% set display_hour = hour % 12 %}
+                            {% if display_hour == 0 %}
+                            {% set display_hour = 12 %}
+                            {% endif %}
+                            {% set am_pm = "AM" if hour < 12 else "PM" %} <option
+                                value="{{ hour }}:{{ '%02d' % minute }}">{{ display_hour }}:{{ '%02d' % minute }} {{
+                                am_pm }}</option>
+                                {% endfor %}
+                                {% endfor %}
+                        </select>
                     </div>
                     <!-- Activity Field -->
                     <div class="col-auto">
@@ -94,10 +88,10 @@
 
                     <script>
                         function calculateDuration() {
-                            const fromHour = parseInt(document.getElementById('from_hour').value);
-                            const fromMinute = parseInt(document.getElementById('from_minute').value);
-                            const toHour = parseInt(document.getElementById('to_hour').value);
-                            const toMinute = parseInt(document.getElementById('to_minute').value);
+                            const fromHour = parseInt(document.getElementById('from_time').value.split(':')[0]);
+                            const fromMinute = parseInt(document.getElementById('from_time').value.split(':')[1]);
+                            const toHour = parseInt(document.getElementById('to_time').value.split(':')[0]);
+                            const toMinute = parseInt(document.getElementById('to_time').value.split(':')[1]);
 
                             let fromTotalMinutes = (fromHour % 12) * 60 + fromMinute;
                             let toTotalMinutes = (toHour % 12) * 60 + toMinute;
@@ -112,10 +106,8 @@
                             document.getElementById('duration').value = `${durationHours}h ${durationRemainingMinutes}m`;
                         }
 
-                        document.getElementById('from_hour').addEventListener('change', calculateDuration);
-                        document.getElementById('from_minute').addEventListener('change', calculateDuration);
-                        document.getElementById('to_hour').addEventListener('change', calculateDuration);
-                        document.getElementById('to_minute').addEventListener('change', calculateDuration);
+                        document.getElementById('from_time').addEventListener('change', calculateDuration);
+                        document.getElementById('to_time').addEventListener('change', calculateDuration);
                     </script>
                 </div>
             </div>
@@ -157,7 +149,8 @@
                         <span>to: {{ entry.to_time }}</span>
                         <span>activity: {{ entry.activity }}</span>
                         <span>duration: {{ entry.duration }} minutes</span>
-                        <span>time-out: <input type="checkbox" {% if entry.time_out %}checked{% endif %} disabled></span>
+                        <span>time-out: <input type="checkbox" {% if entry.time_out %}checked{% endif %}
+                                disabled></span>
                         <span>
                             <button type="button" class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-pencil"></i>
