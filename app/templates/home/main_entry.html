@@ -88,10 +88,13 @@
 
                     <script>
                         function calculateDuration() {
-                            const fromHour = parseInt(document.getElementById('from_time').value.split(':')[0]);
-                            const fromMinute = parseInt(document.getElementById('from_time').value.split(':')[1]);
-                            const toHour = parseInt(document.getElementById('to_time').value.split(':')[0]);
-                            const toMinute = parseInt(document.getElementById('to_time').value.split(':')[1]);
+                            const fromTime = document.getElementById('from_time').value.split(':');
+                            const toTime = document.getElementById('to_time').value.split(':');
+
+                            const fromHour = parseInt(fromTime[0]);
+                            const fromMinute = parseInt(fromTime[1]);
+                            const toHour = parseInt(toTime[0]);
+                            const toMinute = parseInt(toTime[1]);
 
                             let fromTotalMinutes = (fromHour % 12) * 60 + fromMinute;
                             let toTotalMinutes = (toHour % 12) * 60 + toMinute;
@@ -103,7 +106,7 @@
                             const durationHours = Math.floor(durationMinutes / 60);
                             const durationRemainingMinutes = durationMinutes % 60;
 
-                            document.getElementById('duration').value = `${durationHours}h ${durationRemainingMinutes}m`;
+                            document.getElementById('duration').innerText = `${durationHours}h ${durationRemainingMinutes}m`;
                         }
 
                         document.getElementById('from_time').addEventListener('change', calculateDuration);
