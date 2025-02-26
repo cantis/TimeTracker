@@ -3,7 +3,7 @@
 {% block content %}
 
 <h3>enter | edit</h3>
-<form method="POST" class="row justify-content-center">
+<form method="POST" class="row justify-content-center" id="entry_form" action="/add">
     {{ form.hidden_tag() }}
     <div class="col-md-10">
         <!-- operating date -->
@@ -13,7 +13,7 @@
                 value="{{ operating_date }}">
         </div>
         <!-- Card with one row for time and description -->
-        <div class="card mb-2">
+        <div class="card mb-2 col-md-9">
             <div class="card-body">
                 <!-- Row with no extra wide spacing -->
                 <div class="row justify-content-start align-items-start g-2">
@@ -62,7 +62,7 @@
                         </datalist>
                     </div>
                     <!-- Duration Field -->
-                    <div class="col-sm-1">
+                    <div class="col-auto">
                         <h5>duration</h5>
                         <span class="form-control-sm" id="duration" name="duration"></span>
                     </div>
@@ -119,10 +119,27 @@
                             const formattedMinute = currentMinute - (currentMinute % 15); // Round down to nearest 15 minutes
 
                             if (currentHour >= 7 && currentHour < 19) {
-                                const formattedHour = currentHour % 12 === 0 ? 12 : currentHour % 12;
-                                const amPm = currentHour < 12 ? 'AM' : 'PM';
                                 const defaultTime = `${currentHour}:${formattedMinute.toString().padStart(2, '0')}`;
                                 document.getElementById('from_time').value = defaultTime;
+
+                                // Calculate to_time (30 minutes after from_time)
+                                let toHour = currentHour;
+                                let toMinute = formattedMinute + 30;
+
+                                // Adjust if minutes roll over
+                                if (toMinute >= 60) {
+                                    toHour += 1;
+                                    toMinute -= 60;
+                                }
+
+                                // Make sure we're still within the valid range (7-18)
+                                if (toHour < 19) {
+                                    const toTime = `${toHour}:${toMinute.toString().padStart(2, '0')}`;
+                                    document.getElementById('to_time').value = toTime;
+
+                                    // Calculate duration once defaults are set
+                                    calculateDuration();
+                                }
                             }
                         }
 
