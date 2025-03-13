@@ -1,11 +1,11 @@
 import pytest
 import os
 from app.app import create_app
-from app.db import db  # Import db from the new module
-from app.models import Base, CommonTimeUse
+from app.models import db, TimeEntry
 
 @pytest.fixture
 def app():
+    """Create test Flask application with in-memory database."""
     # Use in-memory SQLite database for testing
     app = create_app()
     app.config.update({
@@ -16,27 +16,21 @@ def app():
     })
 
     with app.app_context():
-        Base.metadata.create_all(db.engine)
-        # Add some test common uses
-        common_uses = [
-            CommonTimeUse(description='Meeting'),
-            CommonTimeUse(description='Development'),
-            CommonTimeUse(description='Break')
-        ]
-        db.session.bulk_save_objects(common_uses)
-        db.session.commit()
+        db.create_all()
 
     yield app
 
     # Cleanup after tests
     with app.app_context():
         db.session.remove()
-        Base.metadata.drop_all(db.engine)
+        db.drop_all()
 
 @pytest.fixture
 def client(app):
+    """Create test client for Flask app."""
     return app.test_client()
 
 @pytest.fixture
 def runner(app):
+    """Create test CLI runner for Flask app."""
     return app.test_cli_runner()

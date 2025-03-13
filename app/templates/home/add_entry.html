@@ -3,66 +3,72 @@
 {% block content %}
 
 <h3>enter | edit</h3>
-<form method="POST" class="row justify-content-center" id="entry_form" action="/add">
+<form method="POST" class="row justify-content-center">
     {{ form.hidden_tag() }}
     <div class="col-md-10">
         <!-- operating date -->
         <div class="mb-3">
             <label for="operating_date" class="form-label">operating date:</label>
             <input class="form-control-sm" type="date" id="operating_date" name="operating_date"
-                value="{{ operating_date.strftime('%Y-%m-%d') }}">
+                value="{{ operating_date }}">
         </div>
         <!-- Card with one row for time and description -->
-        <div class="card mb-2 col-md-9">
+        <div class="card mb-2">
             <div class="card-body">
                 <!-- Row with no extra wide spacing -->
                 <div class="row justify-content-start align-items-start g-2">
                     <!-- From Time -->
                     <div class="col-auto">
                         <h5>from</h5>
-                        <select class="form-control-sm" id="from_time" name="from_time">
-                            {% for hour in range(7, 19) %}
-                            {% for minute in [0, 15, 30, 45] %}
-                            {% set display_hour = hour % 12 %}
-                            {% if display_hour == 0 %}
-                            {% set display_hour = 12 %}
-                            {% endif %}
-                            {% set am_pm = "AM" if hour < 12 else "PM" %} <option
-                                value="{{ hour }}:{{ '%02d' % minute }}">{{ display_hour }}:{{ '%02d' % minute }} {{
-                                am_pm }}</option>
-                                {% endfor %}
-                                {% endfor %}
-                        </select>
+                        <div class="d-flex">
+                            <div>
+                                <select class="form-control-sm" id="from_hour" name="from_hour">
+                                    {% for hour in [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6] %}
+                                    <option value="{{ hour }}">{{ hour }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="ms-1">
+                                <select class="form-control-sm" id="from_minute" name="from_minute">
+                                    {% for minute in [0, 15, 30, 45] %}
+                                    <option value="{{ minute }}">{{ minute }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <!-- To Time -->
                     <div class="col-auto">
                         <h5>to</h5>
-                        <select class="form-control-sm" id="to_time" name="to_time">
-                            {% for hour in range(7, 19) %}
-                            {% for minute in [0, 15, 30, 45] %}
-                            {% set display_hour = hour % 12 %}
-                            {% if display_hour == 0 %}
-                            {% set display_hour = 12 %}
-                            {% endif %}
-                            {% set am_pm = "AM" if hour < 12 else "PM" %} <option
-                                value="{{ hour }}:{{ '%02d' % minute }}">{{ display_hour }}:{{ '%02d' % minute }} {{
-                                am_pm }}</option>
-                                {% endfor %}
-                                {% endfor %}
-                        </select>
+                        <div class="d-flex">
+                            <div>
+                                <select class="form-control-sm" id="to_hour" name="to_hour">
+                                    {% for hour in [7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6] %}
+                                    <option value="{{ hour }}">{{ hour }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="ms-1">
+                                <select class="form-control-sm" id="to_minute" name="to_minute">
+                                    {% for minute in [0, 15, 30, 45] %}
+                                    <option value="{{ minute }}">{{ minute }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <!-- Activity Field -->
                     <div class="col-auto">
                         <h5>activity</h5>
                         <input class="form-control-sm" list="activity-options" id="activity" name="activity">
                         <datalist id="activity-options">
-                            {% for option in activity_options|default([]) %}
+                            {% for option in activity_options %}
                             <option value="{{ option }}">{{ option }}</option>
                             {% endfor %}
                         </datalist>
                     </div>
                     <!-- Duration Field -->
-                    <div class="col-auto">
+                    <div class="col-sm-1">
                         <h5>duration</h5>
                         <span class="form-control-sm" id="duration" name="duration"></span>
                     </div>
@@ -70,7 +76,8 @@
                     <div class="col-auto">
                         <h5>time-out</h5>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="time_out" name="time_out" {% if time_out %}checked{% endif %}>
+                            <input class="form-check-input" type="checkbox" id="time_out" name="time_out" {% if time_out
+                                %}checked{% endif %}>
                             <label class="form-check-label" for="time_out">Time-out</label>
                         </div>
                     </div>
@@ -87,13 +94,10 @@
 
                     <script>
                         function calculateDuration() {
-                            const fromTime = document.getElementById('from_time').value.split(':');
-                            const toTime = document.getElementById('to_time').value.split(':');
-
-                            const fromHour = parseInt(fromTime[0]);
-                            const fromMinute = parseInt(fromTime[1]);
-                            const toHour = parseInt(toTime[0]);
-                            const toMinute = parseInt(toTime[1]);
+                            const fromHour = parseInt(document.getElementById('from_hour').value);
+                            const fromMinute = parseInt(document.getElementById('from_minute').value);
+                            const toHour = parseInt(document.getElementById('to_hour').value);
+                            const toMinute = parseInt(document.getElementById('to_minute').value);
 
                             let fromTotalMinutes = (fromHour % 12) * 60 + fromMinute;
                             let toTotalMinutes = (toHour % 12) * 60 + toMinute;
@@ -105,44 +109,13 @@
                             const durationHours = Math.floor(durationMinutes / 60);
                             const durationRemainingMinutes = durationMinutes % 60;
 
-                            document.getElementById('duration').innerText = `${durationHours}h ${durationRemainingMinutes}m`;
+                            document.getElementById('duration').value = `${durationHours}h ${durationRemainingMinutes}m`;
                         }
 
-                        document.getElementById('from_time').addEventListener('change', calculateDuration);
-                        document.getElementById('to_time').addEventListener('change', calculateDuration);
-
-                        function setDefaultTime() {
-                            const now = new Date();
-                            const currentHour = now.getHours();
-                            const currentMinute = now.getMinutes();
-                            const formattedMinute = currentMinute - (currentMinute % 15); // Round down to nearest 15 minutes
-
-                            if (currentHour >= 7 && currentHour < 19) {
-                                const defaultTime = `${currentHour}:${formattedMinute.toString().padStart(2, '0')}`;
-                                document.getElementById('from_time').value = defaultTime;
-
-                                // Calculate to_time (30 minutes after from_time)
-                                let toHour = currentHour;
-                                let toMinute = formattedMinute + 30;
-
-                                // Adjust if minutes roll over
-                                if (toMinute >= 60) {
-                                    toHour += 1;
-                                    toMinute -= 60;
-                                }
-
-                                // Make sure we're still within the valid range (7-18)
-                                if (toHour < 19) {
-                                    const toTime = `${toHour}:${toMinute.toString().padStart(2, '0')}`;
-                                    document.getElementById('to_time').value = toTime;
-
-                                    // Calculate duration once defaults are set
-                                    calculateDuration();
-                                }
-                            }
-                        }
-
-                        document.addEventListener('DOMContentLoaded', setDefaultTime);
+                        document.getElementById('from_hour').addEventListener('change', calculateDuration);
+                        document.getElementById('from_minute').addEventListener('change', calculateDuration);
+                        document.getElementById('to_hour').addEventListener('change', calculateDuration);
+                        document.getElementById('to_minute').addEventListener('change', calculateDuration);
                     </script>
                 </div>
             </div>
@@ -177,13 +150,13 @@
                             <p>time-out</p>
                         </div>
                     </div>
-                    {% for entry in entries|default([]) %}
+                    {% for entry in time_entries %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <span class="grab-point">&#x2630;</span>
                         <span>from: {{ entry.from_time }}</span>
                         <span>to: {{ entry.to_time }}</span>
                         <span>activity: {{ entry.activity }}</span>
-                        <span>duration: {{ entry.duration if entry.duration is defined else "N/A" }} minutes</span>
+                        <span>duration: {{ entry.duration }} minutes</span>
                         <span>time-out: <input type="checkbox" {% if entry.time_out %}checked{% endif %} disabled></span>
                         <span>
                             <button type="button" class="btn btn-sm btn-outline-secondary">

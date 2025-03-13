@@ -13,7 +13,7 @@ class TimeEntry(db.Model):
     __tablename__ = 'time_entries'
 
     id = Column(Integer, primary_key=True)
-    date = Column(DateTime, nullable=False, default=datetime.datetime.now(datetime.timezone.utc))
+    activity_date = Column(DateTime, nullable=False, default=datetime.datetime.now(datetime.timezone.utc))
     from_time = Column(Integer, nullable=False)  # Stored in minutes past midnight
     to_time = Column(Integer, nullable=False)  # Stored in minutes past midnight
     activity = Column(String, nullable=True)
