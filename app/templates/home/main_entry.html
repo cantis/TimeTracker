@@ -24,13 +24,16 @@
                             {% for hour in range(7, 19) %}
                             {% for minute in [0, 15, 30, 45] %}
                             {% set display_hour = hour % 12 %}
+
                             {% if display_hour == 0 %}
+
                             {% set display_hour = 12 %}
                             {% endif %}
                             {% set am_pm = "AM" if hour < 12 else "PM" %} <option
                                 value="{{ hour }}:{{ '%02d' % minute }}">{{ display_hour }}:{{ '%02d' % minute }} {{
                                 am_pm }}</option>
                                 {% endfor %}
+
                                 {% endfor %}
                         </select>
                     </div>
@@ -41,13 +44,17 @@
                             {% for hour in range(7, 19) %}
                             {% for minute in [0, 15, 30, 45] %}
                             {% set display_hour = hour % 12 %}
+
                             {% if display_hour == 0 %}
+
                             {% set display_hour = 12 %}
                             {% endif %}
+
                             {% set am_pm = "AM" if hour < 12 else "PM" %} <option
                                 value="{{ hour }}:{{ '%02d' % minute }}">{{ display_hour }}:{{ '%02d' % minute }} {{
                                 am_pm }}</option>
                                 {% endfor %}
+
                                 {% endfor %}
                         </select>
                     </div>
@@ -151,54 +158,279 @@
 </form>
 
 <!-- Time Entry List -->
-<h3>todays entries</h3>
-<form class="row justify-content-center mt-4">
+<h3>entries</h3>
+<div class="row justify-content-center mt-4">
     <div class="col-md-10">
+        <!-- Filter controls -->
         <div class="card mb-2">
             <div class="card-body">
-                <ul class="list-group">
-                    <div class="row justify-content-start align-items-start g-2">
-                        <div class="col-auto">
-                            <p>&nbsp;</p>
-                        </div>
-                        <div class="col-auto">
-                            <p>from</p>
-                        </div>
-                        <div class="col-auto">
-                            <p>to</p>
-                        </div>
-                        <div class="col-auto">
-                            <p>activity</p>
-                        </div>
-                        <div class="col-sm-1">
-                            <p>duration</p>
-                        </div>
-                        <div class="col-auto">
-                            <p>time-out</p>
-                        </div>
+                <div class="d-flex flex-wrap gap-3">
+                    <div>
+                        <label for="filter-activity" class="form-label">Filter by activity:</label>
+                        <select class="form-select form-select-sm" id="filter-activity">
+                            <option value="">All activities</option>
+                            {% for option in activity_options|default([]) %}
+                            <option value="{{ option }}">{{ option }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    {% for entry in entries|default([]) %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span class="grab-point">&#x2630;</span>
-                        <span>from: {{ entry.from_time }}</span>
-                        <span>to: {{ entry.to_time }}</span>
-                        <span>activity: {{ entry.activity }}</span>
-                        <span>duration: {{ entry.duration if entry.duration is defined else "N/A" }} minutes</span>
-                        <span>time-out: <input type="checkbox" {% if entry.time_out %}checked{% endif %} disabled></span>
-                        <span>
-                            <button type="button" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </span>
-                    </li>
-                    {% endfor %}
-                </ul>
+                    <div>
+                        <label for="filter-duration" class="form-label">Duration over:</label>
+                        <select class="form-select form-select-sm" id="filter-duration">
+                            <option value="0">Any duration</option>
+                            <option value="15">15 minutes</option>
+                            <option value="30">30 minutes</option>
+                            <option value="60">1 hour</option>
+                            <option value="120">2 hours</option>
+                        </select>
+                    </div>
+                    <div class="ms-auto mt-auto">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="reset-filters">
+                            <i class="bi bi-x-circle"></i> Reset filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-2">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="entries-table">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="sortable" data-sort="from">
+                                    <i class="bi bi-clock"></i> From
+                                </th>
+                                <th scope="col" class="sortable" data-sort="to">
+                                    <i class="bi bi-clock-fill"></i> To
+                                </th>
+                                <th scope="col" class="sortable" data-sort="activity">
+                                    <i class="bi bi-journal-text"></i> Activity
+                                </th>
+                                <th scope="col" class="sortable" data-sort="duration">
+                                    <i class="bi bi-hourglass"></i> Duration
+                                </th>
+                                <th scope="col" class="text-center">
+                                    <i class="bi bi-pause-circle"></i> Time-out
+                                </th>
+                                <th scope="col" class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in entries|default([]) %}
+                            <tr class="entry-row">
+                                <td>
+                                    {% if ':' in entry.from_time|string %}
+                                        {% set from_parts = entry.from_time.split(':') %}
+                                        {% set hour = from_parts[0]|int %}
+                                        {% set minute = from_parts[1]|int %}
+                                        {% set display_hour = hour % 12 %}
+                                        {% if display_hour == 0 %}
+                                            {% set display_hour = 12 %}
+                                        {% endif %}
+                                        {{ display_hour }}:{{ '%02d' % minute }} {{ 'AM' if hour < 12 else 'PM' }}
+                                    {% else %}
+                                        {{ entry.from_time }}
+                                    {% endif %}
+                                    </td>
+                                <td>
+                                    {% if ':' in entry.to_time|string %}
+                                        {% set to_parts = entry.to_time.split(':') %}
+                                        {% set hour = to_parts[0]|int %}
+                                        {% set minute = to_parts[1]|int %}
+                                        {% set display_hour = hour % 12 %}
+                                        {% if display_hour == 0 %}
+                                            {% set display_hour = 12 %}
+                                        {% endif %}
+                                        {{ display_hour }}:{{ '%02d' % minute }} {{ 'AM' if hour < 12 else 'PM' }}
+                                    {% else %}
+                                        {{ entry.to_time }}
+                                    {% endif %}
+                                </td>
+                                <td class="entry-activity">{{ entry.activity }}</td>
+                                <td class="entry-duration" data-value="{{ ((entry.to_time|int - entry.from_time|int)/60)|round|int if entry.to_time|string is number and entry.from_time|string is number else '' }}">
+                                    {% if entry.to_time|string is number and entry.from_time|string is number %}
+                                        {{ ((entry.to_time|int - entry.from_time|int)/60)|round|int }} minutes
+                                    {% elif entry.duration is defined %}
+                                        {{ entry.duration }} minutes
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <div class="form-check d-flex justify-content-center">
+                                        <input class="form-check-input" type="checkbox" {% if entry.time_out %}checked{% endif %} disabled>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Edit entry">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Delete entry">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if not entries|default([]) %}
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-calendar-x"></i> No entries for this date
+                </div>
+                {% endif %}
+                <div id="no-results" class="text-center text-muted py-3" style="display: none;">
+                    <i class="bi bi-filter-circle-fill"></i> No entries match the current filters
+                </div>
             </div>
         </div>
     </div>
-</form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add sorting functionality to the table
+        const getCellValue = (tr, idx) => {
+            const cell = tr.children[idx];
+            
+            // Special handling for time values (columns 0 and 1)
+            if (idx === 0 || idx === 1) {
+                // Try to parse time in format "8:45 AM" or "12:30 PM"
+                const timeText = cell.innerText.trim();
+                const match = timeText.match(/(\d+):(\d+)\s+(AM|PM)/i);
+                
+                if (match) {
+                    let hours = parseInt(match[1], 10);
+                    const minutes = parseInt(match[2], 10);
+                    const period = match[3].toUpperCase();
+                    
+                    // Convert to 24-hour format for proper sorting
+                    if (period === 'PM' && hours < 12) {
+                        hours += 12;
+                    } else if (period === 'AM' && hours === 12) {
+                        hours = 0;
+                    }
+                    
+                    // Return minutes past midnight as a sortable value
+                    return (hours * 60) + minutes;
+                }
+            }
+            
+            return cell.getAttribute('data-value') || cell.innerText.trim();
+        };
+
+        const comparer = (idx, asc) => (a, b) => {
+            const v1 = getCellValue(asc ? a : b, idx);
+            const v2 = getCellValue(asc ? b : a, idx);
+            
+            // Try to compare as numbers if possible
+            if (!isNaN(v1) && !isNaN(v2)) {
+                return v1 - v2;
+            }
+            
+            return v1.toString().localeCompare(v2);
+        };
+
+        // Store sort state
+        const sortState = {
+            column: 0, // From column index
+            asc: false // Descending by default
+        };
+
+        function sortTable(th, asc) {
+            const table = th.closest('table');
+            const tbody = table.querySelector('tbody');
+            const idx = Array.from(th.parentNode.children).indexOf(th);
+            
+            Array.from(tbody.querySelectorAll('tr'))
+                .sort(comparer(idx, asc))
+                .forEach(tr => tbody.appendChild(tr));
+            
+            // Update sort indicators
+            table.querySelectorAll('th').forEach(header => {
+                header.classList.remove('sorting-asc', 'sorting-desc');
+            });
+            
+            th.classList.add(asc ? 'sorting-asc' : 'sorting-desc');
+            
+            // Update sort state
+            sortState.column = idx;
+            sortState.asc = asc;
+        }
+
+        document.querySelectorAll('th.sortable').forEach(th => {
+            th.addEventListener('click', function() {
+                const idx = Array.from(th.parentNode.children).indexOf(th);
+                // Toggle direction if same column, otherwise default to ascending
+                const asc = sortState.column === idx ? !sortState.asc : true;
+                sortTable(th, asc);
+            });
+        });
+
+        // Apply default sort on page load (From column descending)
+        const fromColumn = document.querySelector('th.sortable[data-sort="from"]');
+        if (fromColumn) {
+            setTimeout(() => sortTable(fromColumn, false), 0);
+        }
+
+        // Add filtering functionality
+        function applyFilters() {
+            const activityFilter = document.getElementById('filter-activity').value.toLowerCase();
+            const durationFilter = parseInt(document.getElementById('filter-duration').value, 10);
+            
+            let visibleCount = 0;
+            document.querySelectorAll('.entry-row').forEach(row => {
+                const activityMatch = !activityFilter || 
+                    row.querySelector('.entry-activity').textContent.toLowerCase().includes(activityFilter);
+                
+                const durationCell = row.querySelector('.entry-duration');
+                const durationValue = durationCell && durationCell.getAttribute('data-value') ? 
+                    parseInt(durationCell.getAttribute('data-value'), 10) : 0;
+                const durationMatch = !durationFilter || durationValue >= durationFilter;
+                
+                if (activityMatch && durationMatch) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Show/hide "no results" message
+            document.getElementById('no-results').style.display = 
+                (visibleCount === 0 && document.querySelectorAll('.entry-row').length > 0) ? 'block' : 'none';
+        }
+
+        document.getElementById('filter-activity').addEventListener('change', applyFilters);
+        document.getElementById('filter-duration').addEventListener('change', applyFilters);
+        
+        document.getElementById('reset-filters').addEventListener('click', function() {
+            document.getElementById('filter-activity').value = '';
+            document.getElementById('filter-duration').value = '0';
+            applyFilters();
+        });
+    });
+</script>
+
+<style>
+    .sortable {
+        cursor: pointer;
+    }
+    .sortable:hover {
+        background-color: #f8f9fa;
+    }
+    .sorting-asc::after {
+        content: " ↑";
+    }
+    .sorting-desc::after {
+        content: " ↓";
+    }
+    /* Add some bottom space for the page */
+    .container {
+        margin-bottom: 2rem;
+    }
+</style>
 
 {% endblock %}
