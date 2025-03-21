@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_wtf import FlaskForm
 from wtforms import IntegerField, StringField
 from wtforms.validators import DataRequired, Optional
@@ -22,21 +22,21 @@ class AddTimeEntryForm(FlaskForm):
 # Routes
 @home_bp.route('/')
 def index() -> str:
-    date_filter = request.args.get('date', datetime.now()).strftime('%Y-%m-%d')
-    entries = TimeEntry.query.filter(db.func.date(TimeEntry.activity_date) == date_filter).order_by(TimeEntry.from_time).all()
-    operating_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
-    form = AddTimeEntryForm()
+    date_filter = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     try:
-        return render_template('home/main_entry.html', 
-                              entries=entries, 
-                              operating_date=operating_date, 
-                              form=form,
-                              activity_options=["Meeting", "Development", "Break"])
-    except Exception as e:
-        current_app.logger.error(f'Error fetching time entries: {e}')
-        entries = []
-        flash('An error occurred while fetching time entries. Please try again later.', 'danger')
-        return render_template('home/main_entry.html', entries=entries, operating_date=operating_date, form=form)
+        operating_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
+    except ValueError:
+        operating_date = datetime.now().date()
+
+    entries = TimeEntry.query.filter(db.func.date(TimeEntry.activity_date) == operating_date).order_by(TimeEntry.from_time).all()
+    form = AddTimeEntryForm()
+    return render_template(
+        'home/main_entry.html',
+        entries=entries,
+        operating_date=operating_date,
+        form=form,
+        activity_options=["Meeting", "Development", "Break"]
+    )
 
 
 @home_bp.route('/add', methods=['POST'])
@@ -63,3 +63,10 @@ def add_entry() -> str:
         redirect(url_for('index'))
 
     return render_template('home/main_entry.html', form=form)
+
+
+@home_bp.route('/entries', methods=['GET'])
+def get_entries() -> str:
+    date_filter = request.args.get('date', datetime.now()).strftime('%Y-%m-%d')
+    entries = TimeEntry.query.filter(db.func.date(TimeEntry.activity_date) == date_filter).order_by(TimeEntry.from_time).all()
+    return render_template('home/entries.html', entries=entries)

@@ -1,61 +1,100 @@
 from datetime import datetime
 from app.models import TimeEntry, db
 
-def test_index_route(client):
-    # Test empty list
-    response = client.get('/')
-    assert response.status_code == 200
+def test_index_route(client, app):
+    with app.app_context():
+        # Test empty list
+        response = client.get('/')
+        assert response.status_code == 200
 
-    # Add test entry and verify it appears
-    entry = TimeEntry(
-        activity_date=datetime.now(),
-        from_time=540,  # 9:00 AM
-        to_time=570,    # 9:30 AM
-        activity='Test entry'
-    )
-    db.session.add(entry)
-    db.session.commit()
+        # Add test entry and verify it appears
+        entry = TimeEntry(
+            activity_date=datetime.now(),
+            from_time=540,  # 9:00 AM
+            to_time=570,    # 9:30 AM
+            activity='Test entry'
+        )
+        db.session.add(entry)
+        db.session.commit()
 
-    response = client.get('/')
-    assert response.status_code == 200
-    assert b'Test entry' in response.data
+        response = client.get('/')
+        assert response.status_code == 200
+        assert b'Test entry' in response.data
 
-def test_add_entry_get(client):
-    response = client.get('/add')
-    assert response.status_code == 200
-    assert b'Add Time Entry' in response.data
-    assert b'form' in response.data
+def test_add_entry_get(client, app):
+    with app.app_context():
+        response = client.get('/add')
+        assert response.status_code == 200
+        assert b'Add Time Entry' in response.data
+        assert b'form' in response.data
 
-def test_add_entry_post_success(client):
-    # Test adding a new time entry
-    data = {
-        'operating_date': '2023-08-01',
-        'from_time': '9:00',
-        'to_time': '9:30',
-        'activity': 'Test entry',
-        'time_out': 0
-    }
+def test_add_entry_post_success(client, app):
+    with app.app_context():
+        # Test adding a new time entry
+        data = {
+            'operating_date': '2023-08-01',
+            'from_time': '9:00',
+            'to_time': '9:30',
+            'activity': 'Test entry',
+            'time_out': 0
+        }
 
-    response = client.post('/add', data=data, follow_redirects=True)
-    assert response.status_code == 200
+        response = client.post('/add', data=data, follow_redirects=True)
+        assert response.status_code == 200
 
-    # Verify entry was added to database
-    entry = TimeEntry.query.filter_by(activity='Test entry').first()
-    assert entry is not None
+        # Verify entry was added to database
+        entry = TimeEntry.query.filter_by(activity='Test entry').first()
+        assert entry is not None
 
-def test_add_entry_validation(client):
-    # Test with invalid data
-    data = {
-        'operating_date': '',
-        'from_time': '',
-        'to_time': '',
-        'activity': '',
-        'time_out': -15
-    }
+def test_add_entry_validation(client, app):
+    with app.app_context():
+        # Test with invalid data
+        data = {
+            'operating_date': '',
+            'from_time': '',
+            'to_time': '',
+            'activity': '',
+            'time_out': -15
+        }
 
-    response = client.post('/add', data=data)
-    assert response.status_code == 200
+        response = client.post('/add', data=data)
+        assert response.status_code == 200
 
-    # Verify no entry was added
-    entries = TimeEntry.query.all()
-    assert len(entries) == 0
+        # Verify no entry was added
+        entries = TimeEntry.query.all()
+        assert len(entries) == 0
+
+def test_change_operating_date(client, app):
+    with app.app_context():
+        # Arrange
+        entry1 = TimeEntry(
+            activity_date=datetime(2023, 8, 1),
+            from_time=540,  # 9:00 AM
+            to_time=570,    # 9:30 AM
+            activity='Test entry 1'
+        )
+        entry2 = TimeEntry(
+            activity_date=datetime(2023, 8, 2),
+            from_time=600,  # 10:00 AM
+            to_time=630,    # 10:30 AM
+            activity='Test entry 2'
+        )
+        db.session.add(entry1)
+        db.session.add(entry2)
+        db.session.commit()
+
+        # Act
+        response = client.get('/?date=2023-08-01')
+
+        # Assert
+        assert response.status_code == 200
+        assert b'Test entry 1' in response.data
+        assert b'Test entry 2' not in response.data
+
+        # Act
+        response = client.get('/?date=2023-08-02')
+
+        # Assert
+        assert response.status_code == 200
+        assert b'Test entry 1' not in response.data
+        assert b'Test entry 2' in response.data

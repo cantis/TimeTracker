@@ -10,7 +10,7 @@
         <div class="mb-3">
             <label for="operating_date" class="form-label">operating date:</label>
             <input class="form-control-sm" type="date" id="operating_date" name="operating_date"
-                value="{{ operating_date.strftime('%Y-%m-%d') }}">
+                value="{{ operating_date.strftime('%Y-%m-%d') if operating_date else '' }}">
         </div>
         <!-- Card with one row for time and description -->
         <div class="card mb-2 col-md-9">
@@ -150,6 +150,12 @@
                         }
 
                         document.addEventListener('DOMContentLoaded', setDefaultTime);
+                    </script>
+                    <script>
+                        document.getElementById('operating_date').addEventListener('change', function() {
+                            const selectedDate = this.value;
+                            window.location.href = `/?date=${selectedDate}`;
+                        });
                     </script>
                 </div>
             </div>
