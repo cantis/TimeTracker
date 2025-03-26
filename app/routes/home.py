@@ -61,6 +61,26 @@ def get_entry(entry_id: int):
     })
 
 
+@home_bp.route('/entry/<int:entry_id>/delete', methods=['POST'])
+def delete_entry(entry_id: int):
+    """Delete a time entry by ID."""
+    entry = TimeEntry.query.get_or_404(entry_id)
+    
+    try:
+        # Save date for redirect
+        activity_date = entry.activity_date.strftime('%Y-%m-%d')
+        
+        # Delete the entry
+        db.session.delete(entry)
+        db.session.commit()
+        
+        flash('Time entry deleted successfully.', 'success')
+        return jsonify({'success': True, 'redirect': url_for('home.index', date=activity_date)})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @home_bp.route('/add', methods=['POST'])
 def add_entry() -> str:
     form = AddTimeEntryForm()
