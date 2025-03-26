@@ -6,6 +6,9 @@
 <form method="POST" class="row justify-content-center" id="entry_form" action="/add">
     {{ form.hidden_tag() }}
     <div class="col-md-10">
+        <!-- Hidden field for entry ID when editing -->
+        <input type="hidden" id="entry_id" name="entry_id" value="">
+        
         <!-- operating date -->
         <div class="mb-3">
             <label for="operating_date" class="form-label">operating date:</label>
@@ -28,6 +31,7 @@
                             {% if display_hour == 0 %}
 
                             {% set display_hour = 12 %}
+
                             {% endif %}
                             {% set am_pm = "AM" if hour < 12 else "PM" %} <option
                                 value="{{ hour }}:{{ '%02d' % minute }}">{{ display_hour }}:{{ '%02d' % minute }} {{
@@ -48,6 +52,7 @@
                             {% if display_hour == 0 %}
 
                             {% set display_hour = 12 %}
+
                             {% endif %}
 
                             {% set am_pm = "AM" if hour < 12 else "PM" %} <option
@@ -84,12 +89,12 @@
                     <!-- Submit Button -->
                     <div class="col-auto">
                         <h5>&nbsp;</h5>
-                        <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+                        <button type="submit" class="btn btn-primary btn-sm" id="submit_button">Submit</button>
                     </div>
                     <!-- Clear Button -->
                     <div class="col-auto">
                         <h5>&nbsp;</h5>
-                        <button type="reset" class="btn btn-secondary btn-sm">Clear</button>
+                        <button type="reset" class="btn btn-secondary btn-sm" id="clear_button">Clear</button>
                     </div>
 
                     <script>
@@ -225,7 +230,7 @@
                         </thead>
                         <tbody>
                             {% for entry in entries|default([]) %}
-                            <tr class="entry-row">
+                            <tr class="entry-row" data-entry-id="{{ entry.id }}">
                                 <td>
                                     {% if ':' in entry.from_time|string %}
                                         {% set from_parts = entry.from_time.split(':') %}
@@ -270,7 +275,8 @@
                                     </div>
                                 </td>
                                 <td class="text-center">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Edit entry">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary edit-entry-btn" 
+                                            title="Edit entry" data-entry-id="{{ entry.id }}">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-danger" title="Delete entry">
@@ -416,6 +422,55 @@
             document.getElementById('filter-activity').value = '';
             document.getElementById('filter-duration').value = '0';
             applyFilters();
+        });
+
+        // Add editing functionality
+        document.querySelectorAll('.edit-entry-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const entryId = this.getAttribute('data-entry-id');
+                loadEntryForEditing(entryId);
+            });
+        });
+        
+        // Function to load entry data for editing
+        function loadEntryForEditing(entryId) {
+            fetch(`/entry/${entryId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Set form fields
+                    document.getElementById('entry_id').value = data.id;
+                    document.getElementById('operating_date').value = data.activity_date;
+                    document.getElementById('from_time').value = data.from_time;
+                    document.getElementById('to_time').value = data.to_time;
+                    document.getElementById('activity').value = data.activity;
+                    document.getElementById('time_out').checked = data.time_out === 1;
+                    
+                    // Update submit button text to indicate editing
+                    document.getElementById('submit_button').innerText = 'Update';
+                    
+                    // Scroll to the form
+                    document.getElementById('entry_form').scrollIntoView({ behavior: 'smooth' });
+                    
+                    // Calculate duration
+                    calculateDuration();
+                })
+                .catch(error => {
+                    console.error('Error loading entry:', error);
+                    alert('Failed to load the entry for editing.');
+                });
+        }
+        
+        // Reset form on clear button click
+        document.getElementById('clear_button').addEventListener('click', function() {
+            // Clear the entry ID and reset submit button text
+            document.getElementById('entry_id').value = '';
+            document.getElementById('submit_button').innerText = 'Submit';
+            setDefaultTime(); // Set default times
         });
     });
 </script>
