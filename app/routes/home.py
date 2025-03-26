@@ -69,6 +69,9 @@ def add_entry() -> str:
     
     try:
         if form.validate_on_submit():
+            # Debug the checkbox value
+            checkbox_value = request.form.get('time_out')
+            
             # If entry_id exists, update existing entry
             if entry_id:
                 entry = TimeEntry.query.get_or_404(int(entry_id))
@@ -76,7 +79,8 @@ def add_entry() -> str:
                 entry.from_time = request.form.get('from_time')
                 entry.to_time = request.form.get('to_time')
                 entry.activity = request.form.get('activity')
-                entry.time_out = int(request.form.get('time_out', 0)) if request.form.get('time_out') else None
+                # Use checkbox_value directly - checkbox is only in request.form if checked
+                entry.time_out = 1 if checkbox_value else 0
                 flash('Time entry updated successfully.', 'success')
             else:
                 # Create new entry
@@ -85,7 +89,8 @@ def add_entry() -> str:
                     from_time=request.form.get('from_time'),
                     to_time=request.form.get('to_time'),
                     activity=request.form.get('activity'),
-                    time_out=int(request.form.get('time_out', 0)) if request.form.get('time_out') else None,
+                    # Use checkbox_value directly
+                    time_out=1 if checkbox_value else 0,
                 )
                 db.session.add(entry)
                 flash('Time entry added successfully.', 'success')
@@ -95,9 +100,10 @@ def add_entry() -> str:
     except Exception as e:
         db.session.rollback()
         flash(f'An error occurred while saving the entry: {str(e)}', 'danger')
-        return redirect(url_for('home.index'))
+        return redirect(url_for('home.index', date=operating_date))  # Added date to redirect
 
-    return render_template('home/main_entry.html', form=form)
+    # If validation fails, redirect to the same date view
+    return redirect(url_for('home.index', date=operating_date))  # Return to same date
 
 
 @home_bp.route('/entries', methods=['GET'])

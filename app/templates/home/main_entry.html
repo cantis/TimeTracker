@@ -81,7 +81,7 @@
                     <div class="col-auto">
                         <h5>time-out</h5>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="time_out" name="time_out" {% if time_out %}checked{% endif %}>
+                            <input class="form-check-input" type="checkbox" id="time_out" name="time_out" value="1" {% if time_out %}checked{% endif %}>
                             <label class="form-check-label" for="time_out">Time-out</label>
                         </div>
                     </div>
@@ -347,7 +347,7 @@
         // Store sort state
         const sortState = {
             column: 0, // From column index
-            asc: false // Descending by default
+            asc: true  // Changed from false to true for ascending order
         };
 
         function sortTable(th, asc) {
@@ -380,10 +380,10 @@
             });
         });
 
-        // Apply default sort on page load (From column descending)
+        // Apply default sort on page load (From column ascending)
         const fromColumn = document.querySelector('th.sortable[data-sort="from"]');
         if (fromColumn) {
-            setTimeout(() => sortTable(fromColumn, false), 0);
+            setTimeout(() => sortTable(fromColumn, true), 0);  // Changed from false to true for ascending order
         }
 
         // Add filtering functionality
