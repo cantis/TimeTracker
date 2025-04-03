@@ -9,14 +9,21 @@
 # https://github.com/docker/awesome-compose
 services:
   server:
-    env_file:
-      - .env
     build:
+      args:
+        VERSION_TAG: ${VERSION_TAG:-latest}
       context: .
     container_name: time-tracker
-    image: time-tracker:1.0
+    image: time-tracker:${VERSION_TAG:-latest}
+    volumes:
+      - c:/temp/time-tracker:/app/data
     ports:
       - 5000:5000
+    environment:
+      SQLALCHEMY_DATABASE_URI: sqlite:///data/time-tracker.db
+      SECRET_KEY: this_is_my_secret_key_217149
+      DAY_START_TIME: 08:30
+      DAY_END_TIME: 17:00
     logging:
       driver: local
 

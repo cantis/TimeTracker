@@ -38,14 +38,19 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
     python -m pip install -r requirements.txt
 
-# Switch to the non-privileged user to run the application.
-USER appuser
-
 # Copy the source code into the container.
 COPY . .
+
+# Create required directories with proper permissions
+RUN mkdir -p /app/data /app/instance \
+    && chown -R appuser:appuser /app/data /app/instance \
+    && chmod 777 /app/data /app/instance
+
+# Switch to the non-privileged user to run the application.
+USER appuser
 
 # Expose the port that the application listens on.
 EXPOSE 5000
 
-# Run the application.
-CMD gunicorn run:app --bind=0.0.0.0:5000
+# Run the application with debugging.
+CMD python test_db_path.py && python debug_docker_env.py && gunicorn run:app --bind=0.0.0.0:5000
