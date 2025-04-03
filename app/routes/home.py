@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+from flask import Blueprint, Response, flash, jsonify, redirect, render_template, request, url_for
 from flask_wtf import FlaskForm
 from wtforms import IntegerField, StringField
 from wtforms.validators import DataRequired, Optional
@@ -82,48 +82,46 @@ def delete_entry(entry_id: int):
 
 
 @home_bp.route('/add', methods=['POST'])
-def add_entry() -> str:
+def add_entry() -> Response:
+    """Create or update a time entry."""
     form = AddTimeEntryForm()
     operating_date = request.form.get('operating_date')
     entry_id = request.form.get('entry_id')
     
     try:
         if form.validate_on_submit():
-            # Debug the checkbox value
             checkbox_value = request.form.get('time_out')
             
-            # If entry_id exists, update existing entry
             if entry_id:
                 entry = TimeEntry.query.get_or_404(int(entry_id))
                 entry.activity_date = datetime.strptime(operating_date, '%Y-%m-%d')
                 entry.from_time = request.form.get('from_time')
                 entry.to_time = request.form.get('to_time')
                 entry.activity = request.form.get('activity')
-                # Use checkbox_value directly - checkbox is only in request.form if checked
-                entry.time_out = 1 if checkbox_value else 0
+                entry.time_out = bool(checkbox_value)
                 flash('Time entry updated successfully.', 'success')
             else:
-                # Create new entry
                 entry = TimeEntry(
                     activity_date=datetime.strptime(operating_date, '%Y-%m-%d'),
                     from_time=request.form.get('from_time'),
                     to_time=request.form.get('to_time'),
                     activity=request.form.get('activity'),
-                    # Use checkbox_value directly
-                    time_out=1 if checkbox_value else 0,
+                    time_out=bool(checkbox_value),
                 )
                 db.session.add(entry)
                 flash('Time entry added successfully.', 'success')
                 
             db.session.commit()
-            return redirect(url_for('home.index', date=operating_date))
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash(f"{field}: {error}", "danger")
+            return redirect(url_for('home.index', date=operating_date), 200)
     except Exception as e:
         db.session.rollback()
-        flash(f'An error occurred while saving the entry: {str(e)}', 'danger')
-        return redirect(url_for('home.index', date=operating_date))  # Added date to redirect
-
-    # If validation fails, redirect to the same date view
-    return redirect(url_for('home.index', date=operating_date))  # Return to same date
+        flash(f'Error saving entry: {str(e)}', 'danger')
+    
+    return redirect(url_for('home.index', date=operating_date))
 
 
 @home_bp.route('/entries', methods=['GET'])

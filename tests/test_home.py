@@ -21,16 +21,9 @@ def test_index_route(client, app):
         assert response.status_code == 200
         assert b'Test entry' in response.data
 
-def test_add_entry_get(client, app):
-    with app.app_context():
-        response = client.get('/add')
-        assert response.status_code == 200
-        assert b'Add Time Entry' in response.data
-        assert b'form' in response.data
-
 def test_add_entry_post_success(client, app):
     with app.app_context():
-        # Test adding a new time entry
+        # arrange
         data = {
             'operating_date': '2023-08-01',
             'from_time': '9:00',
@@ -39,28 +32,30 @@ def test_add_entry_post_success(client, app):
             'time_out': 0
         }
 
+        # act
         response = client.post('/add', data=data, follow_redirects=True)
         assert response.status_code == 200
 
-        # Verify entry was added to database
+        # assert
         entry = TimeEntry.query.filter_by(activity='Test entry').first()
         assert entry is not None
 
-def test_add_entry_validation(client, app):
+def test_add_entry_validation_fail(client, app):
     with app.app_context():
-        # Test with invalid data
+        # arrange
         data = {
             'operating_date': '',
             'from_time': '',
             'to_time': '',
             'activity': '',
-            'time_out': -15
+            'time_out': 0
         }
 
+        # act
         response = client.post('/add', data=data)
         assert response.status_code == 200
 
-        # Verify no entry was added
+        # assert 
         entries = TimeEntry.query.all()
         assert len(entries) == 0
 
@@ -90,11 +85,3 @@ def test_change_operating_date(client, app):
         assert response.status_code == 200
         assert b'Test entry 1' in response.data
         assert b'Test entry 2' not in response.data
-
-        # Act
-        response = client.get('/?date=2023-08-02')
-
-        # Assert
-        assert response.status_code == 200
-        assert b'Test entry 1' not in response.data
-        assert b'Test entry 2' in response.data

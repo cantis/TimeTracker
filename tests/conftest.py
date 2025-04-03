@@ -1,7 +1,6 @@
 import pytest
-import os
 from app.app import create_app
-from app.models import db, TimeEntry
+from app.models import db
 
 @pytest.fixture
 def app():
