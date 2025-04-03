@@ -28,7 +28,7 @@ def debug_environment() -> None:
         print(f'{directory} contents:')
         if path.exists():
             for item in path.iterdir():
-                print(f' - {item} ({'dir' if item.is_dir() else 'file'})')
+                print(f" - {item} ({'dir' if item.is_dir() else 'file'})")
         else:
             print(' * Directory doesn`t exist!')
     
