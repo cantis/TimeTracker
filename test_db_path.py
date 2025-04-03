@@ -1,7 +1,6 @@
 """Test script to verify if database paths are writable."""
 
 import os
-import sys
 from pathlib import Path
 
 from dotenv import load_dotenv

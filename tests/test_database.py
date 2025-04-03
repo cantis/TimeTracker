@@ -2,8 +2,6 @@
 
 from datetime import datetime
 
-import pytest
-
 from app.models import TimeEntry, db
 
 def test_database_configuration(app):
