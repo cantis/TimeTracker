@@ -7,7 +7,7 @@
     <div class="col-md-10">
         <!-- Hidden field for entry ID when editing -->
         <input type="hidden" id="entry_id" name="entry_id" value="">
-        
+
         <!-- operating date -->
         <div class="mb-3">
             <label for="operating_date" class="form-label">operating date:</label>
@@ -82,18 +82,18 @@
                         <h5>time-out</h5>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="time_out" name="time_out" value="1" {% if time_out %}checked{% endif %}>
-                            <label class="form-check-label" for="time_out">Time-out</label>
+                            <label class="form-check-label" for="time_out">time-out</label>
                         </div>
                     </div>
                     <!-- Submit Button -->
                     <div class="col-auto">
                         <h5>&nbsp;</h5>
-                        <button type="submit" class="btn btn-primary btn-sm" id="submit_button">Submit</button>
+                        <button type="submit" class="btn btn-primary btn-sm" id="submit_button">submit</button>
                     </div>
                     <!-- Clear Button -->
                     <div class="col-auto">
                         <h5>&nbsp;</h5>
-                        <button type="reset" class="btn btn-secondary btn-sm" id="clear_button">Clear</button>
+                        <button type="reset" class="btn btn-secondary btn-sm" id="clear_button">clear</button>
                     </div>
 
                     <script>
@@ -176,7 +176,7 @@
             <div class="card-body">
                 <div class="d-flex flex-wrap gap-3">
                     <div>
-                        <label for="filter-activity" class="form-label">Filter by activity:</label>
+                        <label for="filter-activity" class="h5">activity</label>
                         <select class="form-select form-select-sm" id="filter-activity">
                             <option value="">All activities</option>
                             {% for option in activity_options|default([]) %}
@@ -185,7 +185,7 @@
                         </select>
                     </div>
                     <div>
-                        <label for="filter-duration" class="form-label">Duration over:</label>
+                        <label for="filter-duration" class="h5">duration</label>
                         <select class="form-select form-select-sm" id="filter-duration">
                             <option value="0">Any duration</option>
                             <option value="15">15 minutes</option>
@@ -196,7 +196,7 @@
                     </div>
                     <div class="ms-auto mt-auto">
                         <button type="button" class="btn btn-sm btn-outline-secondary" id="reset-filters">
-                            <i class="bi bi-x-circle"></i> Reset filters
+                            <i class="bi bi-x-circle"></i> reset filters
                         </button>
                     </div>
                 </div>
@@ -210,21 +210,21 @@
                         <thead>
                             <tr>
                                 <th scope="col" class="sortable" data-sort="from">
-                                    <i class="bi bi-clock"></i> From
+                                    <i class="bi bi-clock"></i> from
                                 </th>
                                 <th scope="col" class="sortable" data-sort="to">
-                                    <i class="bi bi-clock-fill"></i> To
+                                    <i class="bi bi-clock-fill"></i> to
                                 </th>
                                 <th scope="col" class="sortable" data-sort="activity">
-                                    <i class="bi bi-journal-text"></i> Activity
+                                    <i class="bi bi-journal-text"></i> activity
                                 </th>
                                 <th scope="col" class="sortable" data-sort="duration">
-                                    <i class="bi bi-hourglass"></i> Duration
+                                    <i class="bi bi-hourglass"></i> duration
                                 </th>
                                 <th scope="col" class="text-center">
-                                    <i class="bi bi-pause-circle"></i> Time-out
+                                    <i class="bi bi-pause-circle"></i> time-out
                                 </th>
-                                <th scope="col" class="text-center">Actions</th>
+                                <th scope="col" class="text-center">actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -274,11 +274,11 @@
                                     </div>
                                 </td>
                                 <td class="text-center">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary edit-entry-btn" 
+                                    <button type="button" class="btn btn-sm btn-outline-secondary edit-entry-btn"
                                             title="Edit entry" data-entry-id="{{ entry.id }}">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger delete-entry-btn" 
+                                    <button type="button" class="btn btn-sm btn-outline-danger delete-entry-btn"
                                             title="Delete entry" data-entry-id="{{ entry.id }}">
                                         <i class="bi bi-trash"></i>
                                     </button>
@@ -290,11 +290,11 @@
                 </div>
                 {% if not entries|default([]) %}
                 <div class="text-center text-muted py-3">
-                    <i class="bi bi-calendar-x"></i> No entries for this date
+                    <i class="bi bi-calendar-x"></i> no entries for this date
                 </div>
                 {% endif %}
                 <div id="no-results" class="text-center text-muted py-3" style="display: none;">
-                    <i class="bi bi-filter-circle-fill"></i> No entries match the current filters
+                    <i class="bi bi-filter-circle-fill"></i> no entries match the current filters
                 </div>
             </div>
         </div>
@@ -306,42 +306,42 @@
         // Add sorting functionality to the table
         const getCellValue = (tr, idx) => {
             const cell = tr.children[idx];
-            
+
             // Special handling for time values (columns 0 and 1)
             if (idx === 0 || idx === 1) {
                 // Try to parse time in format "8:45 AM" or "12:30 PM"
                 const timeText = cell.innerText.trim();
                 const match = timeText.match(/(\d+):(\d+)\s+(AM|PM)/i);
-                
+
                 if (match) {
                     let hours = parseInt(match[1], 10);
                     const minutes = parseInt(match[2], 10);
                     const period = match[3].toUpperCase();
-                    
+
                     // Convert to 24-hour format for proper sorting
                     if (period === 'PM' && hours < 12) {
                         hours += 12;
                     } else if (period === 'AM' && hours === 12) {
                         hours = 0;
                     }
-                    
+
                     // Return minutes past midnight as a sortable value
                     return (hours * 60) + minutes;
                 }
             }
-            
+
             return cell.getAttribute('data-value') || cell.innerText.trim();
         };
 
         const comparer = (idx, asc) => (a, b) => {
             const v1 = getCellValue(asc ? a : b, idx);
             const v2 = getCellValue(asc ? b : a, idx);
-            
+
             // Try to compare as numbers if possible
             if (!isNaN(v1) && !isNaN(v2)) {
                 return v1 - v2;
             }
-            
+
             return v1.toString().localeCompare(v2);
         };
 
@@ -355,18 +355,18 @@
             const table = th.closest('table');
             const tbody = table.querySelector('tbody');
             const idx = Array.from(th.parentNode.children).indexOf(th);
-            
+
             Array.from(tbody.querySelectorAll('tr'))
                 .sort(comparer(idx, asc))
                 .forEach(tr => tbody.appendChild(tr));
-            
+
             // Update sort indicators
             table.querySelectorAll('th').forEach(header => {
                 header.classList.remove('sorting-asc', 'sorting-desc');
             });
-            
+
             th.classList.add(asc ? 'sorting-asc' : 'sorting-desc');
-            
+
             // Update sort state
             sortState.column = idx;
             sortState.asc = asc;
@@ -391,17 +391,17 @@
         function applyFilters() {
             const activityFilter = document.getElementById('filter-activity').value.toLowerCase();
             const durationFilter = parseInt(document.getElementById('filter-duration').value, 10);
-            
+
             let visibleCount = 0;
             document.querySelectorAll('.entry-row').forEach(row => {
-                const activityMatch = !activityFilter || 
+                const activityMatch = !activityFilter ||
                     row.querySelector('.entry-activity').textContent.toLowerCase().includes(activityFilter);
-                
+
                 const durationCell = row.querySelector('.entry-duration');
-                const durationValue = durationCell && durationCell.getAttribute('data-value') ? 
+                const durationValue = durationCell && durationCell.getAttribute('data-value') ?
                     parseInt(durationCell.getAttribute('data-value'), 10) : 0;
                 const durationMatch = !durationFilter || durationValue >= durationFilter;
-                
+
                 if (activityMatch && durationMatch) {
                     row.style.display = '';
                     visibleCount++;
@@ -411,13 +411,13 @@
             });
 
             // Show/hide "no results" message
-            document.getElementById('no-results').style.display = 
+            document.getElementById('no-results').style.display =
                 (visibleCount === 0 && document.querySelectorAll('.entry-row').length > 0) ? 'block' : 'none';
         }
 
         document.getElementById('filter-activity').addEventListener('change', applyFilters);
         document.getElementById('filter-duration').addEventListener('change', applyFilters);
-        
+
         document.getElementById('reset-filters').addEventListener('click', function() {
             document.getElementById('filter-activity').value = '';
             document.getElementById('filter-duration').value = '0';
@@ -431,18 +431,18 @@
                 loadEntryForEditing(entryId);
             });
         });
-        
+
         // Add delete functionality
         document.querySelectorAll('.delete-entry-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const entryId = this.getAttribute('data-entry-id');
-                
+
                 if (confirm('Are you sure you want to delete this entry? This action cannot be undone.')) {
                     deleteEntry(entryId);
                 }
             });
         });
-        
+
         // Function to delete an entry
         function deleteEntry(entryId) {
             fetch(`/entry/${entryId}/delete`, {
@@ -470,7 +470,7 @@
                 alert('Failed to delete the entry. Please try again.');
             });
         }
-        
+
         // Function to load entry data for editing
         function loadEntryForEditing(entryId) {
             fetch(`/entry/${entryId}`)
@@ -488,13 +488,13 @@
                     document.getElementById('to_time').value = data.to_time;
                     document.getElementById('activity').value = data.activity;
                     document.getElementById('time_out').checked = data.time_out === 1;
-                    
+
                     // Update submit button text to indicate editing
                     document.getElementById('submit_button').innerText = 'Update';
-                    
+
                     // Scroll to the form
                     document.getElementById('entry_form').scrollIntoView({ behavior: 'smooth' });
-                    
+
                     // Calculate duration
                     calculateDuration();
                 })
@@ -503,7 +503,7 @@
                     alert('Failed to load the entry for editing.');
                 });
         }
-        
+
         // Reset form on clear button click
         document.getElementById('clear_button').addEventListener('click', function() {
             // Clear the entry ID and reset submit button text
