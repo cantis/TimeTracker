@@ -12,7 +12,7 @@ def debug_environment() -> None:
     '''Print environment information for debugging.'''
     print('=== Environment Variables ===')
     for key, value in sorted(os.environ.items()):
-        print(f'{key}={value}')
+        print(f'{key}={value}')  
     
     print('\n=== Important Paths ===')
     app_dir = Path('/app')

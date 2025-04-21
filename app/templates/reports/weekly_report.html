@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>Weekly Report</h3>
+<p>Report for {{ start_date }} to {{ end_date }}</p>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Activity</th>
+            <th>Duration</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in entries %}
+        <tr>
+            <td>{{ entry.date }}</td>
+            <td>{{ entry.activity }}</td>
+            <td>{{ entry.duration }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<button class="btn btn-secondary" onclick="window.print()">Print Report</button>
+{% endblock %}

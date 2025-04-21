@@ -43,14 +43,14 @@ def index() -> str:
 def get_entry(entry_id: int):
     """Get a specific time entry by ID."""
     entry = TimeEntry.query.get_or_404(entry_id)
-    
+
     # Format times as HH:MM for the form
     from_time = entry.from_time
     to_time = entry.to_time
-    
+
     # Format date as YYYY-MM-DD
     activity_date = entry.activity_date.strftime('%Y-%m-%d')
-    
+
     return jsonify({
         'id': entry.id,
         'activity_date': activity_date,
@@ -65,15 +65,15 @@ def get_entry(entry_id: int):
 def delete_entry(entry_id: int):
     """Delete a time entry by ID."""
     entry = TimeEntry.query.get_or_404(entry_id)
-    
+
     try:
         # Save date for redirect
         activity_date = entry.activity_date.strftime('%Y-%m-%d')
-        
+
         # Delete the entry
         db.session.delete(entry)
         db.session.commit()
-        
+
         flash('Time entry deleted successfully.', 'success')
         return jsonify({'success': True, 'redirect': url_for('home.index', date=activity_date)})
     except Exception as e:
@@ -87,11 +87,11 @@ def add_entry() -> Response:
     form = AddTimeEntryForm()
     operating_date = request.form.get('operating_date')
     entry_id = request.form.get('entry_id')
-    
+
     try:
         if form.validate_on_submit():
             checkbox_value = request.form.get('time_out')
-            
+
             if entry_id:
                 entry = TimeEntry.query.get_or_404(int(entry_id))
                 entry.activity_date = datetime.strptime(operating_date, '%Y-%m-%d')
@@ -110,7 +110,7 @@ def add_entry() -> Response:
                 )
                 db.session.add(entry)
                 flash('Time entry added successfully.', 'success')
-                
+
             db.session.commit()
         else:
             for field, errors in form.errors.items():
@@ -120,7 +120,7 @@ def add_entry() -> Response:
     except Exception as e:
         db.session.rollback()
         flash(f'Error saving entry: {str(e)}', 'danger')
-    
+
     return redirect(url_for('home.index', date=operating_date))
 
 

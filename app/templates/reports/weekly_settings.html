@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>weekly report</h3>
+<form method="POST" action="/reports/weekly">
+    <div class="row">
+        <div class="col-md-4">
+            <label for="start_date" class="form-label">Start Date:</label>
+            <input type="date" id="start_date" name="start_date" class="form-control">
+        </div>
+        <div class="col-md-4">
+            <label for="end_date" class="form-label">End Date:</label>
+            <input type="date" id="end_date" name="end_date" class="form-control">
+        </div>
+    </div>
+    <br>
+    <button type="submit" class="btn btn-primary">Generate Report</button>
+    <a href="/" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}
