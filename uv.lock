@@ -1,5 +1,4 @@
 version = 1
-revision = 1
 requires-python = ">=3.11"
 
 [[package]]
@@ -333,7 +332,7 @@ wheels = [
 
 [[package]]
 name = "timetracker"
-version = "0.1.25"
+version = "0.1.26"
 source = { virtual = "." }
 dependencies = [
     { name = "flask" },
