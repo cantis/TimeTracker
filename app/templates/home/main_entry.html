@@ -13,6 +13,7 @@
             <label for="operating_date" class="form-label">operating date:</label>
             <input class="form-control-sm" type="date" id="operating_date" name="operating_date"
                 value="{{ operating_date.strftime('%Y-%m-%d') if operating_date else '' }}">
+            <button type="button" class="btn btn-secondary btn-sm" id="set_today_button">Today</button>
         </div>
         <!-- Card with one row for time and description -->
         <div class="card mb-2 col-md-9">
@@ -81,7 +82,8 @@
                     <div class="col-auto">
                         <h5>time-out</h5>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="time_out" name="time_out" value="1" {% if time_out %}checked{% endif %}>
+                            <input class="form-check-input" type="checkbox" id="time_out" name="time_out" value="1" {%
+                                if time_out %}checked{% endif %}>
                             <label class="form-check-label" for="time_out">time-out</label>
                         </div>
                     </div>
@@ -156,9 +158,16 @@
                         document.addEventListener('DOMContentLoaded', setDefaultTime);
                     </script>
                     <script>
-                        document.getElementById('operating_date').addEventListener('change', function() {
+                        document.getElementById('operating_date').addEventListener('change', function () {
                             const selectedDate = this.value;
                             window.location.href = `/?date=${selectedDate}`;
+                        });
+                    </script>
+                    <script>
+                        document.getElementById('set_today_button').addEventListener('click', function () {
+                            const today = new Date().toISOString().split('T')[0];
+                            document.getElementById('operating_date').value = today;
+                            window.location.href = `/?date=${today}`;
                         });
                     </script>
                 </div>
@@ -232,54 +241,50 @@
                             <tr class="entry-row" data-entry-id="{{ entry.id }}">
                                 <td>
                                     {% if ':' in entry.from_time|string %}
-                                        {% set from_parts = entry.from_time.split(':') %}
-                                        {% set hour = from_parts[0]|int %}
-                                        {% set minute = from_parts[1]|int %}
-                                        {% set display_hour = hour % 12 %}
-                                        {% if display_hour == 0 %}
-                                            {% set display_hour = 12 %}
-                                        {% endif %}
-                                        {{ display_hour }}:{{ '%02d' % minute }} {{ 'AM' if hour < 12 else 'PM' }}
-                                    {% else %}
-                                        {{ entry.from_time }}
+                                    {% set from_parts = entry.from_time.split(':') %}
+                                    {% set hour = from_parts[0]|int %}
+                                    {% set minute = from_parts[1]|int %}
+                                    {% set display_hour = hour % 12 %}
+                                    {% if display_hour == 0 %}
+                                    {% set display_hour = 12 %}
                                     {% endif %}
-                                    </td>
+                                    {{ display_hour }}:{{ '%02d' % minute }} {{ 'AM' if hour < 12 else 'PM' }} {% else
+                                        %} {{ entry.from_time }} {% endif %} </td>
                                 <td>
                                     {% if ':' in entry.to_time|string %}
-                                        {% set to_parts = entry.to_time.split(':') %}
-                                        {% set hour = to_parts[0]|int %}
-                                        {% set minute = to_parts[1]|int %}
-                                        {% set display_hour = hour % 12 %}
-                                        {% if display_hour == 0 %}
-                                            {% set display_hour = 12 %}
-                                        {% endif %}
-                                        {{ display_hour }}:{{ '%02d' % minute }} {{ 'AM' if hour < 12 else 'PM' }}
-                                    {% else %}
-                                        {{ entry.to_time }}
+                                    {% set to_parts = entry.to_time.split(':') %}
+                                    {% set hour = to_parts[0]|int %}
+                                    {% set minute = to_parts[1]|int %}
+                                    {% set display_hour = hour % 12 %}
+                                    {% if display_hour == 0 %}
+                                    {% set display_hour = 12 %}
                                     {% endif %}
-                                </td>
+                                    {{ display_hour }}:{{ '%02d' % minute }} {{ 'AM' if hour < 12 else 'PM' }} {% else
+                                        %} {{ entry.to_time }} {% endif %} </td>
                                 <td class="entry-activity">{{ entry.activity }}</td>
-                                <td class="entry-duration" data-value="{{ ((entry.to_time|int - entry.from_time|int)/60)|round|int if entry.to_time|string is number and entry.from_time|string is number else '' }}">
+                                <td class="entry-duration"
+                                    data-value="{{ ((entry.to_time|int - entry.from_time|int)/60)|round|int if entry.to_time|string is number and entry.from_time|string is number else '' }}">
                                     {% if entry.to_time|string is number and entry.from_time|string is number %}
-                                        {{ ((entry.to_time|int - entry.from_time|int)/60)|round|int }} minutes
+                                    {{ ((entry.to_time|int - entry.from_time|int)/60)|round|int }} minutes
                                     {% elif entry.duration is defined %}
-                                        {{ entry.duration }} minutes
+                                    {{ entry.duration }} minutes
                                     {% else %}
-                                        N/A
+                                    N/A
                                     {% endif %}
                                 </td>
                                 <td class="text-center">
                                     <div class="form-check d-flex justify-content-center">
-                                        <input class="form-check-input" type="checkbox" {% if entry.time_out %}checked{% endif %} disabled>
+                                        <input class="form-check-input" type="checkbox" {% if entry.time_out %}checked{%
+                                            endif %} disabled>
                                     </div>
                                 </td>
                                 <td class="text-center">
                                     <button type="button" class="btn btn-sm btn-outline-secondary edit-entry-btn"
-                                            title="Edit entry" data-entry-id="{{ entry.id }}">
+                                        title="Edit entry" data-entry-id="{{ entry.id }}">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-danger delete-entry-btn"
-                                            title="Delete entry" data-entry-id="{{ entry.id }}">
+                                        title="Delete entry" data-entry-id="{{ entry.id }}">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </td>
@@ -302,7 +307,7 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Add sorting functionality to the table
         const getCellValue = (tr, idx) => {
             const cell = tr.children[idx];
@@ -373,7 +378,7 @@
         }
 
         document.querySelectorAll('th.sortable').forEach(th => {
-            th.addEventListener('click', function() {
+            th.addEventListener('click', function () {
                 const idx = Array.from(th.parentNode.children).indexOf(th);
                 // Toggle direction if same column, otherwise default to ascending
                 const asc = sortState.column === idx ? !sortState.asc : true;
@@ -418,7 +423,7 @@
         document.getElementById('filter-activity').addEventListener('change', applyFilters);
         document.getElementById('filter-duration').addEventListener('change', applyFilters);
 
-        document.getElementById('reset-filters').addEventListener('click', function() {
+        document.getElementById('reset-filters').addEventListener('click', function () {
             document.getElementById('filter-activity').value = '';
             document.getElementById('filter-duration').value = '0';
             applyFilters();
@@ -426,7 +431,7 @@
 
         // Add editing functionality
         document.querySelectorAll('.edit-entry-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const entryId = this.getAttribute('data-entry-id');
                 loadEntryForEditing(entryId);
             });
@@ -434,7 +439,7 @@
 
         // Add delete functionality
         document.querySelectorAll('.delete-entry-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const entryId = this.getAttribute('data-entry-id');
 
                 if (confirm('Are you sure you want to delete this entry? This action cannot be undone.')) {
@@ -451,24 +456,24 @@
                     'Content-Type': 'application/json',
                 }
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    // Reload the page or redirect
-                    window.location.href = data.redirect;
-                } else {
-                    alert('Failed to delete the entry.');
-                }
-            })
-            .catch(error => {
-                console.error('Error deleting entry:', error);
-                alert('Failed to delete the entry. Please try again.');
-            });
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Reload the page or redirect
+                        window.location.href = data.redirect;
+                    } else {
+                        alert('Failed to delete the entry.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting entry:', error);
+                    alert('Failed to delete the entry. Please try again.');
+                });
         }
 
         // Function to load entry data for editing
@@ -505,7 +510,7 @@
         }
 
         // Reset form on clear button click
-        document.getElementById('clear_button').addEventListener('click', function() {
+        document.getElementById('clear_button').addEventListener('click', function () {
             // Clear the entry ID and reset submit button text
             document.getElementById('entry_id').value = '';
             document.getElementById('submit_button').innerText = 'Submit';
@@ -518,15 +523,19 @@
     .sortable {
         cursor: pointer;
     }
+
     .sortable:hover {
         background-color: #f8f9fa;
     }
+
     .sorting-asc::after {
         content: " ↑";
     }
+
     .sorting-desc::after {
         content: " ↓";
     }
+
     /* Make table header sticky when scrolling */
     #entries-table thead th {
         position: sticky;
@@ -534,6 +543,7 @@
         background-color: white;
         z-index: 1;
     }
+
     /* Add some bottom space for the page */
     .container {
         margin-bottom: 2rem;

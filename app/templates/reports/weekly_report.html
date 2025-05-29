@@ -8,7 +8,9 @@
         <tr>
             <th>Date</th>
             <th>Activity</th>
-            <th>Duration</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Duration (hours)</th>
         </tr>
     </thead>
     <tbody>
@@ -16,6 +18,10 @@
         <tr>
             <td>{{ entry.date }}</td>
             <td>{{ entry.activity }}</td>
+            <td>{% if ':' in entry.from_time|string %}{{ entry.from_time }}{% else %}{{ (entry.from_time //
+                60)|string|zfill(2) }}:{{ (entry.from_time % 60)|string|zfill(2) }}{% endif %}</td>
+            <td>{% if ':' in entry.to_time|string %}{{ entry.to_time }}{% else %}{{ (entry.to_time //
+                60)|string|zfill(2) }}:{{ (entry.to_time % 60)|string|zfill(2) }}{% endif %}</td>
             <td>{{ entry.duration }}</td>
         </tr>
         {% endfor %}
