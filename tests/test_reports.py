@@ -1,6 +1,8 @@
 """Tests for the weekly_report route in reports.py."""
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+
+from app.models import TimeEntry, db
 
 
 # Arrange: Setup a test client and test data
@@ -22,13 +24,17 @@ def test_weekly_report_get(client):
 
 def test_weekly_report_post(client, app):
     """Test POST request to /reports/weekly returns the report page with correct entries."""
-    # Arrange
-    from app.models import TimeEntry, db
 
+    # Arrange
     start_date = date(2025, 5, 18)
     end_date = date(2025, 5, 24)
     with app.app_context():
-        entry = TimeEntry(activity_date=start_date, from_time=480, to_time=540, activity='Test Activity')
+        entry = TimeEntry(
+            activity_date=datetime.combine(start_date, datetime.min.time()),
+            from_time=480,
+            to_time=540,
+            activity='Test Activity',
+        )
         db.session.add(entry)
         db.session.commit()
     # Act

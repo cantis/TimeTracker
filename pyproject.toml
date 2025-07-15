@@ -4,10 +4,31 @@ version = "0.1.27"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = [ "flask>=3.1.0", "flask-bootstrap>=3.3.7.1", "flask-sqlalchemy>=3.1.1", "flask-wtf>=1.2.2", "gunicorn>=23.0.0", "python-dotenv>=1.0.1", "sqlalchemy>=2.0.37",]
+dependencies = [
+    "flask>=3.1.0",
+    "flask-bootstrap>=3.3.7.1",
+    "flask-sqlalchemy>=3.1.1",
+    "flask-wtf>=1.2.2",
+    "gunicorn>=23.0.0",
+    "python-dotenv>=1.0.1",
+    "sqlalchemy>=2.0.37",
+]
 
 [dependency-groups]
-dev = [ "pytest>=8.3.4", "ruff>=0.9.3", "toml>=0.10.2",]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-cov>=6.2.1",
+    "ruff>=0.12.3",
+    "toml>=0.10.2",
+    "ty>=0.0.1a14",
+]
 
 [project.license]
 file = "LICENCE.md"
+
+[tool.ruff]
+line-length = 120
+select = ["E", "F", "I"]
+
+[tool.ruff.format]
+quote-style = "single"

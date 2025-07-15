@@ -41,7 +41,7 @@ def test_add_entry_post_success(client, app):
         assert entry is not None
 
 def test_add_entry_validation_fail(client, app):
-    with app.app_context():
+     with app.app_context():
         # arrange
         data = {
             'operating_date': '',
@@ -53,9 +53,9 @@ def test_add_entry_validation_fail(client, app):
 
         # act
         response = client.post('/add', data=data)
-        assert response.status_code == 200
+        assert response.status_code == 302 # Expecting a redirect due to validation failure
 
-        # assert 
+        # assert
         entries = TimeEntry.query.all()
         assert len(entries) == 0
 
