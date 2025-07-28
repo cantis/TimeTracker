@@ -44,4 +44,4 @@ USER appuser
 EXPOSE 5000
 
 # Run the application with debugging.
-CMD ["sh", "-c", "python test_db_path.py && python debug_docker_env.py && gunicorn run:app --bind=0.0.0.0:5000"]
+CMD ["sh", "-c", "gunicorn run:app --bind=0.0.0.0:5000"]
