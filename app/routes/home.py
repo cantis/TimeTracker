@@ -29,6 +29,24 @@ def parse_time_to_minutes(value) -> int:
     return 0
 
 
+def format_time_for_display(value) -> str:
+    """Converts a time value to display format (e.g., '8:45 AM')."""
+    minutes = parse_time_to_minutes(value)
+
+    # Convert minutes past midnight to hours and minutes
+    hours = minutes // 60
+    mins = minutes % 60
+
+    # Convert to 12-hour format
+    display_hour = hours % 12
+    if display_hour == 0:
+        display_hour = 12
+
+    am_pm = 'AM' if hours < 12 else 'PM'
+
+    return f'{display_hour}:{mins:02d} {am_pm}'
+
+
 # Forms
 class AddTimeEntryForm(FlaskForm):
     """Form for creating and editing time entries."""
@@ -52,6 +70,17 @@ def index() -> str:
     entries = (
         TimeEntry.query.filter(db.func.date(TimeEntry.activity_date) == operating_date).order_by('from_time').all()
     )
+
+    # Add formatted times to each entry for display
+    for entry in entries:
+        entry.from_time_display = format_time_for_display(entry.from_time)
+        entry.to_time_display = format_time_for_display(entry.to_time)
+
+        # Calculate duration in minutes for display
+        from_minutes = parse_time_to_minutes(entry.from_time)
+        to_minutes = parse_time_to_minutes(entry.to_time)
+        entry.duration_minutes = to_minutes - from_minutes
+
     form = AddTimeEntryForm()
     return render_template(
         'home/main_entry.html',
@@ -75,8 +104,8 @@ def get_entry(entry_id: int):
         if isinstance(minutes, int):
             hours = minutes // 60
             mins = minutes % 60
-            return f'{hours:02d}:{mins:02d}'
-        return '00:00'
+            return f'{hours}:{mins:02d}'  # No leading zero for hours to match dropdown format
+        return '0:00'
 
     from_time = minutes_to_time_string(entry.from_time)
     to_time = minutes_to_time_string(entry.to_time)

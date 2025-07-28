@@ -239,38 +239,11 @@
                         <tbody>
                             {% for entry in entries|default([]) %}
                             <tr class="entry-row" data-entry-id="{{ entry.id }}">
-                                <td>
-                                    {% if ':' in entry.from_time|string %}
-                                    {% set from_parts = entry.from_time.split(':') %}
-                                    {% set hour = from_parts[0]|int %}
-                                    {% set minute = from_parts[1]|int %}
-                                    {% set display_hour = hour % 12 %}
-                                    {% if display_hour == 0 %}
-                                    {% set display_hour = 12 %}
-                                    {% endif %}
-                                    {{ display_hour }}:{{ '%02d' % minute }} {{ 'AM' if hour < 12 else 'PM' }} {% else
-                                        %} {{ entry.from_time }} {% endif %} </td>
-                                <td>
-                                    {% if ':' in entry.to_time|string %}
-                                    {% set to_parts = entry.to_time.split(':') %}
-                                    {% set hour = to_parts[0]|int %}
-                                    {% set minute = to_parts[1]|int %}
-                                    {% set display_hour = hour % 12 %}
-                                    {% if display_hour == 0 %}
-                                    {% set display_hour = 12 %}
-                                    {% endif %}
-                                    {{ display_hour }}:{{ '%02d' % minute }} {{ 'AM' if hour < 12 else 'PM' }} {% else
-                                        %} {{ entry.to_time }} {% endif %} </td>
+                                <td>{{ entry.from_time_display }}</td>
+                                <td>{{ entry.to_time_display }}</td>
                                 <td class="entry-activity">{{ entry.activity }}</td>
-                                <td class="entry-duration"
-                                    data-value="{{ ((entry.to_time|int - entry.from_time|int)/60)|round|int if entry.to_time|string is number and entry.from_time|string is number else '' }}">
-                                    {% if entry.to_time|string is number and entry.from_time|string is number %}
-                                    {{ ((entry.to_time|int - entry.from_time|int)/60)|round|int }} minutes
-                                    {% elif entry.duration is defined %}
-                                    {{ entry.duration }} minutes
-                                    {% else %}
-                                    N/A
-                                    {% endif %}
+                                <td class="entry-duration" data-value="{{ entry.duration_minutes }}">
+                                    {{ entry.duration_minutes }} minutes
                                 </td>
                                 <td class="text-center">
                                     <div class="form-check d-flex justify-content-center">
