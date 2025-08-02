@@ -2,30 +2,204 @@
 
 {% block content %}
 <h3>Weekly Report</h3>
-<p>Report for {{ start_date }} to {{ end_date }}</p>
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Activity</th>
-            <th>Start Time</th>
-            <th>End Time</th>
-            <th>Duration (hours)</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for entry in entries %}
-        <tr>
-            <td>{{ entry.date }}</td>
-            <td>{{ entry.activity }}</td>
-            <td>{% if ':' in entry.from_time|string %}{{ entry.from_time }}{% else %}{{ (entry.from_time //
-                60)|string|zfill(2) }}:{{ (entry.from_time % 60)|string|zfill(2) }}{% endif %}</td>
-            <td>{% if ':' in entry.to_time|string %}{{ entry.to_time }}{% else %}{{ (entry.to_time //
-                60)|string|zfill(2) }}:{{ (entry.to_time % 60)|string|zfill(2) }}{% endif %}</td>
-            <td>{{ entry.duration }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-<button class="btn btn-secondary" onclick="window.print()">Print Report</button>
+<p class="text-muted">Report for {{ start_date_formatted }} to {{ end_date_formatted }}</p>
+
+<!-- Weekly Summary -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Weekly Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-primary">{{ weekly_summary.total_hours_display }}</h4>
+                            <small class="text-muted">Total Time</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-success">{{ weekly_summary.total_days_worked }}</h4>
+                            <small class="text-muted">Days Worked</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-info">{{ weekly_summary.avg_daily_display }}</h4>
+                            <small class="text-muted">Avg Per Day</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-warning">{{ total_entries }}</h4>
+                            <small class="text-muted">Total Entries</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activity Breakdown -->
+{% if weekly_summary.sorted_activities %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Activity Breakdown</h5>
+            </div>
+            <div class="card-body">
+                {% for activity, minutes in weekly_summary.sorted_activities %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>{{ activity }}</span>
+                    <span class="badge bg-primary">{{ (minutes // 60) }}h {{ (minutes % 60) }}m</span>
+                </div>
+                <div class="progress mb-3" style="height: 8px;">
+                    <div class="progress-bar" role="progressbar"
+                        style="width: {{ (minutes / weekly_summary.total_minutes * 100) | round(1) }}%"
+                        aria-valuenow="{{ (minutes / weekly_summary.total_minutes * 100) | round(1) }}"
+                        aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <!-- Daily Overview Chart placeholder -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calendar3"></i> Daily Overview</h5>
+            </div>
+            <div class="card-body">
+                {% for day in daily_data %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold">{{ day.day_name }}</span>
+                    <span class="text-muted">{{ day.date_str }}</span>
+                    <span class="badge {% if day.total_minutes > 0 %}bg-success{% else %}bg-secondary{% endif %}">
+                        {{ day.total_hours_display }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Daily Details -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-table"></i> Daily Details</h5>
+                <button class="btn btn-outline-primary btn-sm" onclick="window.print()">
+                    <i class="bi bi-printer"></i> Print Report
+                </button>
+            </div>
+            <div class="card-body">
+                {% for day in daily_data %}
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">
+                            {{ day.day_name }}, {{ day.date.strftime('%B %d, %Y') }}
+                            {% if day.total_minutes == 0 %}
+                            <span class="badge bg-secondary ms-2">No entries</span>
+                            {% endif %}
+                        </h6>
+                        {% if day.total_minutes > 0 %}
+                        <div class="text-muted small">
+                            {{ day.first_start_display }} - {{ day.last_end_display }}
+                            ({{ day.total_hours_display }})
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if day.entries %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Activity</th>
+                                    <th>Start Time</th>
+                                    <th>End Time</th>
+                                    <th>Duration</th>
+                                    <th class="text-center">Time-out</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in day.entries %}
+                                <tr>
+                                    <td>{{ entry.activity }}</td>
+                                    <td>{{ entry.from_time_display }}</td>
+                                    <td>{{ entry.to_time_display }}</td>
+                                    <td>{{ entry.duration_display }}</td>
+                                    <td class="text-center">
+                                        {% if entry.time_out %}
+                                        <i class="bi bi-pause-circle text-warning" title="Time-out"></i>
+                                        {% else %}
+                                        <i class="bi bi-dash text-muted"></i>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-calendar-x"></i> No time entries for this day
+                    </div>
+                    {% endif %}
+                </div>
+                {% if not loop.last %}
+                <hr>{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions -->
+<div class="row mt-4">
+    <div class="col-md-12 text-center">
+        <a href="/reports/weekly" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Generate New Report
+        </a>
+        <a href="/" class="btn btn-primary">
+            <i class="bi bi-house"></i> Back to Home
+        </a>
+    </div>
+</div>
+
+<style>
+    @media print {
+
+        .btn,
+        .card-header .btn {
+            display: none !important;
+        }
+
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .card-body {
+            padding: 0 !important;
+        }
+
+        .row {
+            page-break-inside: avoid;
+        }
+
+        h3,
+        h5 {
+            color: #000 !important;
+        }
+    }
+</style>
+
 {% endblock %}
