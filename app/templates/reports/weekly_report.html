@@ -1,17 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h3>Weekly Report</h3>
-<p class="text-muted">Report for {{ start_date_formatted }} to {{ end_date_formatted }}</p>
+<h3>weekly report</h3>
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <p class="text-muted mb-3">Report for {{ start_date_formatted }} to {{ end_date_formatted }}</p>
 
-<!-- Weekly Summary -->
-<div class="row mb-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Weekly Summary</h5>
-            </div>
+        <!-- Weekly Summary -->
+        <div class="card mb-2">
             <div class="card-body">
+                <h5 class="mb-3"><i class="bi bi-bar-chart"></i> weekly summary</h5>
                 <div class="row">
                     <div class="col-md-3">
                         <div class="text-center">
@@ -40,66 +38,58 @@
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Activity Breakdown -->
-{% if weekly_summary.sorted_activities %}
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Activity Breakdown</h5>
+        <!-- Activity Breakdown and Daily Overview -->
+        {% if weekly_summary.sorted_activities %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <h5 class="mb-3"><i class="bi bi-pie-chart"></i> activity breakdown</h5>
+                        {% for activity, minutes in weekly_summary.sorted_activities %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>{{ activity }}</span>
+                            <span class="badge bg-primary">{{ (minutes // 60) }}h {{ (minutes % 60) }}m</span>
+                        </div>
+                        <div class="progress mb-3" style="height: 8px;">
+                            <div class="progress-bar" role="progressbar"
+                                style="width: {{ (minutes / weekly_summary.total_minutes * 100) | round(1) }}%"
+                                aria-valuenow="{{ (minutes / weekly_summary.total_minutes * 100) | round(1) }}"
+                                aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                {% for activity, minutes in weekly_summary.sorted_activities %}
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span>{{ activity }}</span>
-                    <span class="badge bg-primary">{{ (minutes // 60) }}h {{ (minutes % 60) }}m</span>
+            <div class="col-md-6">
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <h5 class="mb-3"><i class="bi bi-calendar3"></i> daily overview</h5>
+                        {% for day in daily_data %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold">{{ day.day_name }}</span>
+                            <span class="text-muted">{{ day.date_str }}</span>
+                            <span
+                                class="badge {% if day.total_minutes > 0 %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ day.total_hours_display }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
-                <div class="progress mb-3" style="height: 8px;">
-                    <div class="progress-bar" role="progressbar"
-                        style="width: {{ (minutes / weekly_summary.total_minutes * 100) | round(1) }}%"
-                        aria-valuenow="{{ (minutes / weekly_summary.total_minutes * 100) | round(1) }}"
-                        aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-                {% endfor %}
             </div>
         </div>
-    </div>
-    <div class="col-md-6">
-        <!-- Daily Overview Chart placeholder -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-calendar3"></i> Daily Overview</h5>
-            </div>
+        {% endif %}
+        <!-- Daily Details -->
+        <div class="card mb-2">
             <div class="card-body">
-                {% for day in daily_data %}
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="fw-bold">{{ day.day_name }}</span>
-                    <span class="text-muted">{{ day.date_str }}</span>
-                    <span class="badge {% if day.total_minutes > 0 %}bg-success{% else %}bg-secondary{% endif %}">
-                        {{ day.total_hours_display }}
-                    </span>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="bi bi-table"></i> daily details</h5>
+                    <button class="btn btn-outline-primary btn-sm" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Print Report
+                    </button>
                 </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
 
-<!-- Daily Details -->
-<div class="row">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-table"></i> Daily Details</h5>
-                <button class="btn btn-outline-primary btn-sm" onclick="window.print()">
-                    <i class="bi bi-printer"></i> Print Report
-                </button>
-            </div>
-            <div class="card-body">
                 {% for day in daily_data %}
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -118,15 +108,15 @@
                     </div>
 
                     {% if day.entries %}
-                    <div class="table-responsive">
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                         <table class="table table-sm table-hover">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Activity</th>
-                                    <th>Start Time</th>
-                                    <th>End Time</th>
-                                    <th>Duration</th>
-                                    <th class="text-center">Time-out</th>
+                                    <th scope="col"><i class="bi bi-journal-text"></i> activity</th>
+                                    <th scope="col"><i class="bi bi-clock"></i> start time</th>
+                                    <th scope="col"><i class="bi bi-clock-fill"></i> end time</th>
+                                    <th scope="col"><i class="bi bi-hourglass"></i> duration</th>
+                                    <th scope="col" class="text-center"><i class="bi bi-pause-circle"></i> time-out</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -137,11 +127,10 @@
                                     <td>{{ entry.to_time_display }}</td>
                                     <td>{{ entry.duration_display }}</td>
                                     <td class="text-center">
-                                        {% if entry.time_out %}
-                                        <i class="bi bi-pause-circle text-warning" title="Time-out"></i>
-                                        {% else %}
-                                        <i class="bi bi-dash text-muted"></i>
-                                        {% endif %}
+                                        <div class="form-check d-flex justify-content-center">
+                                            <input class="form-check-input" type="checkbox" {% if entry.time_out
+                                                %}checked{% endif %} disabled>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -150,7 +139,7 @@
                     </div>
                     {% else %}
                     <div class="text-center text-muted py-3">
-                        <i class="bi bi-calendar-x"></i> No time entries for this day
+                        <i class="bi bi-calendar-x"></i> no time entries for this day
                     </div>
                     {% endif %}
                 </div>
@@ -159,22 +148,33 @@
                 {% endfor %}
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Actions -->
-<div class="row mt-4">
-    <div class="col-md-12 text-center">
-        <a href="/reports/weekly" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Generate New Report
-        </a>
-        <a href="/" class="btn btn-primary">
-            <i class="bi bi-house"></i> Back to Home
-        </a>
+        <!-- Actions -->
+        <div class="text-center mb-4">
+            <a href="/reports/weekly" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> generate new report
+            </a>
+            <a href="/" class="btn btn-primary">
+                <i class="bi bi-house"></i> back to home
+            </a>
+        </div>
     </div>
 </div>
 
 <style>
+    /* Make table header sticky when scrolling */
+    .table-responsive table thead th {
+        position: sticky;
+        top: 0;
+        background-color: white;
+        z-index: 1;
+    }
+
+    /* Add some bottom space for the page */
+    .container {
+        margin-bottom: 2rem;
+    }
+
     @media print {
 
         .btn,
