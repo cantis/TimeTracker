@@ -19,7 +19,7 @@ class User(UserMixin, db.Model):
     email = Column(String(120), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
-    is_active = Column(Boolean, default=True, nullable=False)
+    user_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.datetime.now(datetime.timezone.utc))
     last_login = Column(DateTime, nullable=True)
 
@@ -36,7 +36,7 @@ class User(UserMixin, db.Model):
         self.email = email
         self.set_password(password)
         self.is_admin = is_admin
-        self.is_active = is_active
+        self.user_active = is_active
 
     def set_password(self, password: str) -> None:
         """Hash and set the user's password."""
@@ -44,16 +44,21 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password: str) -> bool:
         """Check if the provided password matches the stored hash."""
-        return check_password_hash(self.password_hash, password)
+        return check_password_hash(str(self.password_hash), password)
 
     def get_id(self) -> str:
         """Return the user ID as a string for Flask-Login."""
         return str(self.id)
 
     @property
+    def is_active(self) -> bool:
+        """Return the user's active status for Flask-Login compatibility."""
+        return bool(self.user_active)
+
+    @property
     def role(self) -> str:
         """Return the user's role as a string."""
-        return 'admin' if self.is_admin else 'user'
+        return 'admin' if bool(self.is_admin) else 'user'
 
     def __repr__(self) -> str:
         """String representation of the user."""

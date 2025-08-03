@@ -91,8 +91,8 @@ def edit_user(user_id: int):
 
         updated_user, error = UserService.update_user(
             user_id=user_id,
-            username=username if username != user.username else None,
-            email=email if email != user.email else None,
+            username=username,
+            email=email,
             password=password if password else None,
             is_admin=is_admin,
             is_active=is_active,

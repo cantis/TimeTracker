@@ -131,7 +131,7 @@ class UserService:
                 user.is_admin = is_admin
 
             if is_active is not None:
-                user.is_active = is_active
+                user.user_active = is_active
 
             db.session.commit()
 

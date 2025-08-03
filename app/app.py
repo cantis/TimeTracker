@@ -18,13 +18,17 @@ from app.service.user_service import UserService
 load_dotenv()
 
 
-def create_app() -> Flask:
+def create_app(config_overrides: dict | None = None) -> Flask:
     """Create and configure Flask application."""
 
     app = Flask(__name__)
 
     # Load configuration
     app.config.from_object(Config)
+
+    # Apply any configuration overrides (useful for testing)
+    if config_overrides:
+        app.config.update(config_overrides)
 
     # Ensure instance folder exists
     os.makedirs(app.instance_path, exist_ok=True)
@@ -49,8 +53,9 @@ def create_app() -> Flask:
 
     with app.app_context():
         db.create_all()
-        # Create default admin user if no users exist
-        UserService.create_default_admin()
+        # Create default admin user if no users exist (skip in tests)
+        if not (app.config.get('SKIP_DEFAULT_ADMIN', False) or os.getenv('SKIP_DEFAULT_ADMIN')):
+            UserService.create_default_admin()
 
     # Register blueprints
     app.register_blueprint(auth_bp)
