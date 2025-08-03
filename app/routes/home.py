@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for
+from flask_login import login_required
 from flask_wtf import FlaskForm
 from werkzeug.wrappers.response import Response
 from wtforms import IntegerField, StringField
@@ -60,6 +61,7 @@ class AddTimeEntryForm(FlaskForm):
 
 # Routes
 @home_bp.route('/')
+@login_required
 def index() -> str:
     date_filter = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     try:
@@ -92,6 +94,7 @@ def index() -> str:
 
 
 @home_bp.route('/entry/<int:entry_id>', methods=['GET'])
+@login_required
 def get_entry(entry_id: int):
     """Get a specific time entry by ID."""
     entry = TimeEntry.query.get_or_404(entry_id)
@@ -126,6 +129,7 @@ def get_entry(entry_id: int):
 
 
 @home_bp.route('/entry/<int:entry_id>/delete', methods=['POST'])
+@login_required
 def delete_entry(entry_id: int):
     """Delete a time entry by ID."""
     entry = TimeEntry.query.get_or_404(entry_id)
@@ -146,6 +150,7 @@ def delete_entry(entry_id: int):
 
 
 @home_bp.route('/add', methods=['POST'])
+@login_required
 def add_entry() -> Response:
     """Create or update a time entry."""
     form = AddTimeEntryForm()
@@ -191,6 +196,7 @@ def add_entry() -> Response:
 
 
 @home_bp.route('/entries', methods=['GET'])
+@login_required
 def get_entries() -> str:
     date_filter = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     entries = TimeEntry.query.filter(db.func.date(TimeEntry.activity_date) == date_filter).order_by('from_time').all()

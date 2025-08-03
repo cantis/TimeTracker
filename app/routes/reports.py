@@ -3,6 +3,7 @@
 from datetime import date
 
 from flask import Blueprint, render_template, request
+from flask_login import login_required
 
 from app.service.weekly_report_service import WeeklyReportService
 
@@ -10,6 +11,7 @@ reports_bp = Blueprint('reports', __name__, url_prefix='/reports')
 
 
 @reports_bp.route('/weekly', methods=['GET', 'POST'])
+@login_required
 def weekly_report():
     """Render the weekly report settings page or generate the report."""
     service = WeeklyReportService()

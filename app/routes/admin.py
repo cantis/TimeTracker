@@ -1,9 +1,128 @@
-from flask import Blueprint, render_template
+"""Admin routes for administrative functions."""
+
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+
+from app.service.user_service import UserService
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 
+def admin_required(f):
+    """Decorator to require admin privileges."""
+
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            flash('Admin privileges required.', 'error')
+            return redirect(url_for('home.index'))
+        return f(*args, **kwargs)
+
+    decorated_function.__name__ = f.__name__
+    return decorated_function
+
+
 @admin_bp.route('/settings')
+@login_required
+@admin_required
 def settings():
     """Render the settings page."""
     return render_template('settings.html')
+
+
+@admin_bp.route('/users')
+@login_required
+@admin_required
+def user_list():
+    """Display list of all users."""
+    users = UserService.get_all_users()
+    return render_template('admin/user_list.html', users=users)
+
+
+@admin_bp.route('/users/add', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def add_user():
+    """Add a new user."""
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        is_admin = request.form.get('is_admin') == 'on'
+        is_active = request.form.get('is_active', 'on') == 'on'
+
+        user, error = UserService.create_user(
+            username=username,
+            email=email,
+            password=password,
+            is_admin=is_admin,
+            is_active=is_active,
+        )
+
+        if user:
+            flash(f'User "{username}" created successfully.', 'success')
+            return redirect(url_for('admin.user_list'))
+        else:
+            flash(f'Error creating user: {error}', 'error')
+
+    return render_template('admin/add_user.html')
+
+
+@admin_bp.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_user(user_id: int):
+    """Edit an existing user."""
+    user = UserService.get_user_by_id(user_id)
+    if not user:
+        flash('User not found.', 'error')
+        return redirect(url_for('admin.user_list'))
+
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        is_admin = request.form.get('is_admin') == 'on'
+        is_active = request.form.get('is_active') == 'on'
+
+        # Don't allow users to remove their own admin status
+        if user.id == current_user.id and not is_admin:
+            flash('You cannot remove your own admin privileges.', 'error')
+            return render_template('admin/edit_user.html', user=user)
+
+        updated_user, error = UserService.update_user(
+            user_id=user_id,
+            username=username if username != user.username else None,
+            email=email if email != user.email else None,
+            password=password if password else None,
+            is_admin=is_admin,
+            is_active=is_active,
+        )
+
+        if updated_user:
+            flash(f'User "{username}" updated successfully.', 'success')
+            return redirect(url_for('admin.user_list'))
+        else:
+            flash(f'Error updating user: {error}', 'error')
+
+    return render_template('admin/edit_user.html', user=user)
+
+
+@admin_bp.route('/users/<int:user_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_user(user_id: int):
+    """Delete a user."""
+    user = UserService.get_user_by_id(user_id)
+    if not user:
+        return jsonify({'success': False, 'message': 'User not found'})
+
+    # Don't allow users to delete themselves
+    if user.id == current_user.id:
+        return jsonify({'success': False, 'message': 'You cannot delete your own account'})
+
+    success, error = UserService.delete_user(user_id)
+
+    if success:
+        return jsonify({'success': True, 'message': f'User "{user.username}" deleted successfully'})
+    else:
+        return jsonify({'success': False, 'message': error})

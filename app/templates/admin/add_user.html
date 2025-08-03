@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>add user</h3>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card mb-2">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">
+                                    <i class="bi bi-person"></i> username
+                                </label>
+                                <input type="text" class="form-control" id="username" name="username" minlength="3"
+                                    maxlength="80" required>
+                                <div class="form-text">At least 3 characters, unique</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">
+                                    <i class="bi bi-envelope"></i> email
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" maxlength="120"
+                                    required>
+                                <div class="form-text">Valid email address, unique</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            <i class="bi bi-lock"></i> password
+                        </label>
+                        <input type="password" class="form-control" id="password" name="password" minlength="6"
+                            required>
+                        <div class="form-text">At least 6 characters</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="is_admin" name="is_admin">
+                                <label class="form-check-label" for="is_admin">
+                                    <i class="bi bi-shield"></i> admin privileges
+                                </label>
+                                <div class="form-text">Allows access to admin functions</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active" checked>
+                                <label class="form-check-label" for="is_active">
+                                    <i class="bi bi-toggle-on"></i> active
+                                </label>
+                                <div class="form-text">User can log in</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('admin.user_list') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-person-plus"></i> create user
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-text {
+        font-size: 0.875em;
+    }
+</style>
+
+{% endblock %}

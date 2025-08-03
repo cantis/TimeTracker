@@ -5,6 +5,7 @@ coverage==7.9.2
 dominate==2.9.1
 flask==3.1.1
 flask-bootstrap==3.3.7.1
+flask-login==0.6.3
 flask-sqlalchemy==3.1.1
 flask-wtf==1.2.2
 greenlet==3.2.3

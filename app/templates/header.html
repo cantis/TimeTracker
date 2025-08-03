@@ -6,10 +6,12 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
+                {% if current_user.is_authenticated %}
                 <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link" href="/">Home</a>
                     </li>
+                    {% if current_user.is_admin %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button"
                             data-bs-toggle="dropdown" aria-expanded="false">
@@ -17,8 +19,10 @@
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="adminMenu">
                             <li><a class="dropdown-item" href="/admin/settings">Settings</a></li>
+                            <li><a class="dropdown-item" href="/admin/users">User Management</a></li>
                         </ul>
                     </li>
+                    {% endif %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="reportsMenu" role="button"
                             data-bs-toggle="dropdown" aria-expanded="false">
@@ -29,6 +33,41 @@
                         </ul>
                     </li>
                 </ul>
+
+                <!-- User menu on the right -->
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i> {{ current_user.username }}
+                            {% if current_user.is_admin %}<span class="badge bg-danger ms-1">Admin</span>{% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                            <li><a class="dropdown-item" href="/auth/profile">
+                                    <i class="bi bi-person"></i> Profile
+                                </a></li>
+                            <li><a class="dropdown-item" href="/auth/change-password">
+                                    <i class="bi bi-key"></i> Change Password
+                                </a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="/auth/logout">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </a></li>
+                        </ul>
+                    </li>
+                </ul>
+                {% else %}
+                <!-- Show login link for unauthenticated users -->
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auth/login">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
+                    </li>
+                </ul>
+                {% endif %}
             </div>
         </div>
     </nav>
