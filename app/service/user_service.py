@@ -1,5 +1,6 @@
 """User management service for handling user operations."""
 
+import os
 from typing import List, Optional
 
 from flask import current_app
@@ -199,15 +200,20 @@ class UserService:
         """Create a default admin user if no users exist."""
         user_count = User.query.count()
         if user_count == 0:
+            # Read default admin settings from environment variables
+            default_username = os.getenv('DEFAULT_ADMIN_USERNAME', 'admin')
+            default_email = os.getenv('DEFAULT_ADMIN_EMAIL', 'admin@timetracker.local')
+            default_password = os.getenv('DEFAULT_ADMIN_PASSWORD', 'admin123')
+
             admin_user = User(
-                username='admin',
-                email='admin@timetracker.local',
-                password='admin123',
+                username=default_username,
+                email=default_email,
+                password=default_password,
                 is_admin=True,
                 is_active=True,
             )
             db.session.add(admin_user)
             db.session.commit()
-            current_app.logger.info('Created default admin user')
+            current_app.logger.info(f'Created default admin user: {default_username}')
             return admin_user
         return None

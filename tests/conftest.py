@@ -28,9 +28,6 @@ def app():
         # Create all tables in the in-memory database
         db.create_all()
 
-    with app.app_context():
-        db.create_all()
-
     yield app
 
     # Cleanup after tests

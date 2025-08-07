@@ -416,7 +416,7 @@ class TestUserService:
                 assert admin_user.is_admin is True  # type: ignore
                 assert admin_user.is_active is True  # type: ignore
                 assert admin_user.check_password('admin123')
-                mock_app.logger.info.assert_called_with('Created default admin user')
+                mock_app.logger.info.assert_called_with('Created default admin user: admin')
 
     def test_create_default_admin_when_users_exist(self, app):
         """Test not creating default admin when users already exist."""
@@ -435,6 +435,35 @@ class TestUserService:
                 # Assert
                 assert admin_user is None
                 mock_app.logger.info.assert_not_called()
+
+    def test_create_default_admin_with_custom_env_vars(self, app):
+        """Test creating default admin with custom environment variables."""
+        with app.app_context():
+            import os
+            from unittest.mock import patch
+
+            # Arrange - set custom environment variables
+            test_env = {
+                'DEFAULT_ADMIN_USERNAME': 'customadmin',
+                'DEFAULT_ADMIN_EMAIL': 'custom@test.com',
+                'DEFAULT_ADMIN_PASSWORD': 'custompass123',
+            }
+
+            with patch.dict(os.environ, test_env):
+                with patch('app.service.user_service.current_app') as mock_app:
+                    mock_app.logger = Mock()
+
+                    # Act
+                    admin_user = UserService.create_default_admin()
+
+                    # Assert
+                    assert admin_user is not None
+                    assert admin_user.username == 'customadmin'  # type: ignore
+                    assert admin_user.email == 'custom@test.com'  # type: ignore
+                    assert admin_user.is_admin is True  # type: ignore
+                    assert admin_user.is_active is True  # type: ignore
+                    assert admin_user.check_password('custompass123')
+                    mock_app.logger.info.assert_called_with('Created default admin user: customadmin')
 
     def test_update_user_partial_update(self, app):
         """Test updating user with only some fields."""
