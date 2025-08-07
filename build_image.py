@@ -1,6 +1,7 @@
 # Description: This script is used to update the version in pyproject.toml and generate the requirements.txt file.
 import os
 import subprocess
+
 import toml
 
 # Generate the requirements.txt file, excluding dev dependencies
@@ -21,4 +22,3 @@ with open('pyproject.toml', 'w') as f:
 
 # Build the docker image
 subprocess.run(['docker', 'compose', 'up', '--build', '-d'], check=True)
-
