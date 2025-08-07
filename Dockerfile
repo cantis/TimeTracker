@@ -43,5 +43,5 @@ USER appuser
 # Expose the port that the application listens on.
 EXPOSE 5000
 
-# Run the application with debugging.
-CMD ["sh", "-c", "gunicorn run:app --bind=0.0.0.0:5000"]
+# Run the application - use PORT env var for Render.com compatibility
+CMD ["sh", "-c", "gunicorn run:app --bind=0.0.0.0:${PORT:-5000}"]

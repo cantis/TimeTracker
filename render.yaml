@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: timetracker
+    runtime: docker
+    plan: starter
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SQLALCHEMY_DATABASE_URI
+        value: sqlite:///app/instance/timetrack.db
+      - key: DAY_START_TIME
+        value: "08:30"
+      - key: DAY_END_TIME
+        value: "17:00"
+      - key: DEFAULT_ADMIN_USERNAME
+        value: admin
+      - key: DEFAULT_ADMIN_EMAIL
+        value: admin@render.app
+      - key: DEFAULT_ADMIN_PASSWORD
+        generateValue: true
+    buildCommand: ""
+    startCommand: ""
+    healthCheckPath: /
+    autoDeploy: true

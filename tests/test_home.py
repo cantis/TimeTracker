@@ -10,13 +10,13 @@ def test_index_route(client, app):
     with app.app_context():
         # Create test user for authentication
         from app.service.user_service import UserService
-        
+
         user, _ = UserService.create_user('testuser', 'test@example.com', 'password123')
         assert user is not None
 
         # Log in as test user
         client.post('/auth/login', data={'username': 'testuser', 'password': 'password123'}, follow_redirects=True)
-        
+
         # Test empty list
         response = client.get('/')
         assert response.status_code == 200
@@ -25,8 +25,8 @@ def test_index_route(client, app):
         entry = TimeEntry(
             activity_date=datetime.now(),
             from_time=540,  # 9:00 AM
-            to_time=570,    # 9:30 AM
-            activity='Test Activity'
+            to_time=570,  # 9:30 AM
+            activity='Test Activity',
         )
         db.session.add(entry)
         db.session.commit()
@@ -40,13 +40,13 @@ def test_add_entry_post_success(client, app):
     with app.app_context():
         # Create test user for authentication
         from app.service.user_service import UserService
-        
+
         user, _ = UserService.create_user('testuser', 'test@example.com', 'password123')
         assert user is not None
 
         # Log in as test user
         client.post('/auth/login', data={'username': 'testuser', 'password': 'password123'}, follow_redirects=True)
-        
+
         # Arrange - prepare test data
         data = {
             'operating_date': '2023-08-01',
@@ -72,21 +72,15 @@ def test_add_entry_validation_fail(client, app):
     with app.app_context():
         # Create test user for authentication
         from app.service.user_service import UserService
-        
+
         user, _ = UserService.create_user('testuser', 'test@example.com', 'password123')
         assert user is not None
 
         # Log in as test user
         client.post('/auth/login', data={'username': 'testuser', 'password': 'password123'}, follow_redirects=True)
-        
+
         # Arrange - prepare invalid test data
-        data = {
-            'operating_date': '', 
-            'from_time': '', 
-            'to_time': '', 
-            'activity': '', 
-            'time_out': '0'
-        }
+        data = {'operating_date': '', 'from_time': '', 'to_time': '', 'activity': '', 'time_out': '0'}
 
         # Act - submit invalid form data
         response = client.post('/add', data=data, follow_redirects=True)
@@ -103,24 +97,24 @@ def test_change_operating_date(client, app):
     with app.app_context():
         # Create test user for authentication
         from app.service.user_service import UserService
-        
+
         user, _ = UserService.create_user('testuser', 'test@example.com', 'password123')
         assert user is not None
 
         # Log in as test user
         client.post('/auth/login', data={'username': 'testuser', 'password': 'password123'}, follow_redirects=True)
-        
+
         # Arrange - create test entries on different dates
         entry1 = TimeEntry(
             activity_date=datetime(2023, 8, 1),
             from_time=540,  # 9:00 AM
-            to_time=570,    # 9:30 AM
+            to_time=570,  # 9:30 AM
             activity='Test entry 1',
         )
         entry2 = TimeEntry(
             activity_date=datetime(2023, 8, 2),
             from_time=600,  # 10:00 AM
-            to_time=630,    # 10:30 AM
+            to_time=630,  # 10:30 AM
             activity='Test entry 2',
         )
         db.session.add(entry1)
