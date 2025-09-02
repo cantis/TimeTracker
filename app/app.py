@@ -12,7 +12,7 @@ from app.routes.admin import admin_bp
 from app.routes.auth import auth_bp
 from app.routes.home import home_bp
 from app.routes.reports import reports_bp
-from app.service.user_service import UserService
+from app.service.user_service import create_default_admin
 
 # Load environment variables from .env file
 load_dotenv()
@@ -55,7 +55,7 @@ def create_app(config_overrides: dict | None = None) -> Flask:
         db.create_all()
         # Create default admin user if no users exist (skip in tests)
         if not (app.config.get('SKIP_DEFAULT_ADMIN', False) or os.getenv('SKIP_DEFAULT_ADMIN')):
-            UserService.create_default_admin()
+            create_default_admin()
 
     # Register blueprints
     app.register_blueprint(auth_bp)

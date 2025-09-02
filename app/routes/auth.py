@@ -6,7 +6,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
 from app.models import db
-from app.service.user_service import UserService
+from app.service.user_service import authenticate_user
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -26,11 +26,11 @@ def login():
             flash('Please enter both username and password.', 'error')
             return render_template('auth/login.html')
 
-        user = UserService.authenticate_user(username, password)
+        user = authenticate_user(username, password)
 
         if user:
             # Update last login time
-            user.last_login = datetime.datetime.now(datetime.timezone.utc)
+            user.last_login = datetime.datetime.now(datetime.timezone.utc)  # type: ignore
             db.session.commit()
 
             login_user(user, remember=remember)

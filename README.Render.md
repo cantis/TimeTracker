@@ -1,4 +1,4 @@
-# Render.com Deployment Guide
+# Render.com Deployment Guide (PostgreSQL)
 
 ## Prerequisites
 - Render.com account
@@ -8,16 +8,31 @@
 
 ### Option 1: Using render.yaml (Recommended)
 
+The `render.yaml` file is pre-configured to create both a web service and PostgreSQL database.
+
 1. **Push your code** to GitHub including the `render.yaml` file
 2. **Connect to Render**:
    - Go to [Render Dashboard](https://dashboard.render.com)
    - Click "New" → "Blueprint"
    - Connect your GitHub repository
-   - Render will automatically read `render.yaml` and configure the service
+   - Render will automatically:
+     - Create a PostgreSQL database (`timetracker-db`)
+     - Create a web service (`timetracker`)
+     - Link them with the `DATABASE_URL` environment variable
 
 ### Option 2: Manual Configuration
 
-1. **Create New Web Service**:
+#### Step 1: Create PostgreSQL Database
+1. **Create Database**:
+   - Go to Render Dashboard
+   - Click "New" → "PostgreSQL"
+   - **Name**: `timetracker-db`
+   - **Database**: `timetracker`
+   - **User**: `timetracker`
+   - **Plan**: `Starter` (free tier)
+
+#### Step 2: Create Web Service
+1. **Create Web Service**:
    - Go to Render Dashboard
    - Click "New" → "Web Service"
    - Connect your GitHub repository
@@ -31,7 +46,7 @@
 3. **Environment Variables**:
    ```
    SECRET_KEY=<generate-random-string>
-   SQLALCHEMY_DATABASE_URI=sqlite:///app/instance/timetrack.db
+   DATABASE_URL=<connection-string-from-postgres-service>
    DAY_START_TIME=08:30
    DAY_END_TIME=17:00
    DEFAULT_ADMIN_USERNAME=admin
@@ -39,42 +54,48 @@
    DEFAULT_ADMIN_PASSWORD=<secure-password>
    ```
 
+## Database Configuration
+
+### Local Development
+Update your `.env` file for local PostgreSQL:
+```env
+DATABASE_URL=postgresql://username:password@localhost:5432/timetracker_db
+```
+
+Or use SQLite for local development:
+```env
+DATABASE_URL=sqlite:///instance/timetrack.db
+```
+
+### Environment Variables Priority
+The application checks for database configuration in this order:
+1. `DATABASE_URL` (Render.com standard, recommended)
+2. `SQLALCHEMY_DATABASE_URI` (legacy support)
+3. SQLite fallback (development only)
+
 ## Important Notes
 
 ### Database Persistence
-⚠️ **SQLite Limitation**: Render's free tier has ephemeral storage - your database will reset on each deployment.
-
-**For Production**: Consider upgrading to:
-- **Render PostgreSQL** (recommended)
-- **External database service**
+✅ **PostgreSQL**: Persistent storage across deployments
+- Data is preserved during app restarts and deployments
+- Automatic backups available on paid plans
+- Better performance for production workloads
 
 ### Environment Variables
 - `SECRET_KEY`: Use Render's "Generate Value" feature for security
+- `DATABASE_URL`: Automatically provided when linking PostgreSQL service
 - `DEFAULT_ADMIN_PASSWORD`: Use Render's "Generate Value" or set a strong password
-- Database will be created automatically on first run
+
+### First Run
+- Database tables are created automatically on first run
+- Default admin user is created based on environment variables
+- Check logs to confirm successful initialization
 
 ### Health Checks
 The app responds to health checks at the root path `/`
 
 ### Logs
 View application logs in the Render dashboard under your service's "Logs" tab
-
-## PostgreSQL Migration (Recommended for Production)
-
-1. **Create PostgreSQL Database**:
-   - In Render Dashboard: "New" → "PostgreSQL"
-   - Note the connection details
-
-2. **Update Environment Variables**:
-   ```
-   SQLALCHEMY_DATABASE_URI=postgresql://user:pass@host:port/dbname
-   ```
-
-3. **Add PostgreSQL Dependencies**:
-   ```bash
-   # Add to requirements.txt
-   psycopg2-binary>=2.9.0
-   ```
 
 ## Deployment Commands
 

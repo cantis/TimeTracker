@@ -14,19 +14,30 @@ class Config:
     if os.getenv('TESTING') == 'True':
         SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     else:
-        # Database config with Docker-aware path handling
-        db_uri = os.getenv('SQLALCHEMY_DATABASE_URI')
-        if db_uri and db_uri.startswith('sqlite:///'):
-            # For Render.com deployment, ensure database is in a writable location
-            db_path = db_uri.replace('sqlite:///', '')
-            if not db_path.startswith('/'):
-                # If path is not absolute, make it relative to app root
-                db_uri = f'sqlite:///{BASE_DIR / db_path}'
-            else:
-                # For Docker paths like /app/instance/*, keep as-is
-                db_uri = f'sqlite:///{db_path}'
+        # Priority order for database configuration:
+        # 1. DATABASE_URL (Render.com standard)
+        # 2. SQLALCHEMY_DATABASE_URI (legacy support)
+        # 3. Default SQLite fallback
 
-        SQLALCHEMY_DATABASE_URI = db_uri or f'sqlite:///{BASE_DIR / "instance" / "timetrack.db"}'
+        database_url = os.getenv('DATABASE_URL')
+        if database_url:
+            # Render.com provides DATABASE_URL, use it directly
+            SQLALCHEMY_DATABASE_URI = database_url
+        else:
+            # Fallback to SQLALCHEMY_DATABASE_URI or SQLite default
+            db_uri = os.getenv('SQLALCHEMY_DATABASE_URI')
+            if db_uri and db_uri.startswith('sqlite:///'):
+                # For SQLite, ensure database is in a writable location
+                db_path = db_uri.replace('sqlite:///', '')
+                if not db_path.startswith('/'):
+                    # If path is not absolute, make it relative to app root
+                    db_uri = f'sqlite:///{BASE_DIR / db_path}'
+                else:
+                    # For Docker paths like /app/instance/*, keep as-is
+                    db_uri = f'sqlite:///{db_path}'
+
+            SQLALCHEMY_DATABASE_URI = db_uri or f'sqlite:///{BASE_DIR / "instance" / "timetrack.db"}'
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Security settings

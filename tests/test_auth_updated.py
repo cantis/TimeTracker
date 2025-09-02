@@ -1,7 +1,7 @@
 """Tests for authentication routes."""
 
 from app.models import User
-from app.service.user_service import UserService
+from app.service.user_service import create_user
 
 
 class TestAuthRoutes:
@@ -11,7 +11,7 @@ class TestAuthRoutes:
         """Test profile page access when authenticated."""
         with app.app_context():
             # Create and login test user
-            user, _ = UserService.create_user('testuser', 'test@example.com', 'password123')
+            user = create_user('testuser', 'test@example.com', 'password123')
             assert user is not None  # Type assertion
 
             with client.session_transaction() as sess:
@@ -34,7 +34,7 @@ class TestAuthRoutes:
         """Test change password page access when authenticated."""
         with app.app_context():
             # Create and login test user
-            user, _ = UserService.create_user('testuser', 'test@example.com', 'password123')
+            user = create_user('testuser', 'test@example.com', 'password123')
 
             with client.session_transaction() as sess:
                 sess['_user_id'] = str(user.id)
@@ -56,7 +56,7 @@ class TestAuthRoutes:
         """Test successful password change."""
         with app.app_context():
             # Create and login test user
-            user, _ = UserService.create_user('testuser', 'test@example.com', 'password123')
+            user = create_user('testuser', 'test@example.com', 'password123')
 
             with client.session_transaction() as sess:
                 sess['_user_id'] = str(user.id)
@@ -85,7 +85,7 @@ class TestAuthRoutes:
         """Test password change with wrong current password."""
         with app.app_context():
             # Create and login test user
-            user, _ = UserService.create_user('testuser', 'test@example.com', 'password123')
+            user = create_user('testuser', 'test@example.com', 'password123')
 
             with client.session_transaction() as sess:
                 sess['_user_id'] = str(user.id)
@@ -108,7 +108,7 @@ class TestAuthRoutes:
         """Test password change with mismatched new passwords."""
         with app.app_context():
             # Create and login test user
-            user, _ = UserService.create_user('testuser', 'test@example.com', 'password123')
+            user = create_user('testuser', 'test@example.com', 'password123')
 
             with client.session_transaction() as sess:
                 sess['_user_id'] = str(user.id)
@@ -131,7 +131,7 @@ class TestAuthRoutes:
         """Test password change with too short new password."""
         with app.app_context():
             # Create and login test user
-            user, _ = UserService.create_user('testuser', 'test@example.com', 'password123')
+            user = create_user('testuser', 'test@example.com', 'password123')
 
             with client.session_transaction() as sess:
                 sess['_user_id'] = str(user.id)

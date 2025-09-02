@@ -12,6 +12,7 @@ from app.models import TimeEntry, db
 home_bp = Blueprint('home', __name__)
 
 
+# region Helper Functions
 def parse_time_to_minutes(value) -> int:
     """Converts a time value to minutes past midnight."""
     if value is None:
@@ -46,9 +47,9 @@ def format_time_for_display(value) -> str:
     am_pm = 'AM' if hours < 12 else 'PM'
 
     return f'{display_hour}:{mins:02d} {am_pm}'
+# endregion
 
-
-# Forms
+# region Forms
 class AddTimeEntryForm(FlaskForm):
     """Form for creating and editing time entries."""
 
@@ -57,9 +58,9 @@ class AddTimeEntryForm(FlaskForm):
     to_time = StringField('End Time (Minutes Past Midnight)', validators=[DataRequired()])
     activity = StringField('Activity', validators=[DataRequired()])
     time_out = IntegerField('Time Out', validators=[Optional()])
+# endregion
 
-
-# Routes
+# region Routes
 @home_bp.route('/')
 @login_required
 def index() -> str:
@@ -201,3 +202,5 @@ def get_entries() -> str:
     date_filter = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     entries = TimeEntry.query.filter(db.func.date(TimeEntry.activity_date) == date_filter).order_by('from_time').all()
     return render_template('home/entries.html', entries=entries)
+
+# endregion
