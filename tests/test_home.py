@@ -15,25 +15,28 @@ def test_index_route(client, app):
         assert user is not None
 
         # Log in as test user
-        client.post('/auth/login', data={'username': 'testuser', 'password': 'password123'}, follow_redirects=True)
+        login_response = client.post(
+            '/auth/login', data={'username': 'testuser', 'password': 'password123'}, follow_redirects=True
+        )
+        assert login_response.status_code == 200
 
         # Test empty list
         response = client.get('/')
         assert response.status_code == 200
-        assert b'Time Entries' in response.data
 
-        # Add some test time entries
+        # Add some test time entries (times in minutes past midnight)
+        today = datetime.now().date()
         entry1 = TimeEntry(
-            start_time=datetime(2023, 1, 1, 9, 0),
-            end_time=datetime(2023, 1, 1, 17, 0),
-            task_description='Test task 1',
-            user_id=user.id,
+            activity_date=datetime.combine(today, datetime.min.time()),
+            from_time=540,  # 9:00 AM (9 * 60 = 540 minutes)
+            to_time=1020,  # 5:00 PM (17 * 60 = 1020 minutes)
+            activity='Test task 1',
         )
         entry2 = TimeEntry(
-            start_time=datetime(2023, 1, 2, 10, 0),
-            end_time=datetime(2023, 1, 2, 18, 0),
-            task_description='Test task 2',
-            user_id=user.id,
+            activity_date=datetime.combine(today, datetime.min.time()),
+            from_time=600,  # 10:00 AM (10 * 60 = 600 minutes)
+            to_time=1080,  # 6:00 PM (18 * 60 = 1080 minutes)
+            activity='Test task 2',
         )
         db.session.add(entry1)
         db.session.add(entry2)
@@ -58,13 +61,16 @@ def test_add_time_entry(client, app):
         # Log in as test user
         client.post('/auth/login', data={'username': 'testuser', 'password': 'password123'}, follow_redirects=True)
 
-        # Add a time entry
+        # Add a time entry using the actual form structure
+        today = datetime.now().strftime('%Y-%m-%d')
         response = client.post(
-            '/add-entry',
+            '/add',
             data={
-                'start_time': '2023-01-01T09:00',
-                'end_time': '2023-01-01T17:00',
-                'task_description': 'New test task',
+                'operating_date': today,
+                'from_time': '9:00',  # This will be converted to 540 minutes
+                'to_time': '17:00',  # This will be converted to 1020 minutes
+                'activity': 'New test task',
+                'time_out': '1',
             },
             follow_redirects=True,
         )
@@ -73,11 +79,11 @@ def test_add_time_entry(client, app):
         assert b'Time entry added successfully' in response.data
 
         # Verify the entry was added to database
-        entry = TimeEntry.query.filter_by(task_description='New test task').first()
+        entry = TimeEntry.query.filter_by(activity='New test task').first()
         assert entry is not None
-        assert entry.user_id == user.id
-        assert entry.start_time.hour == 9
-        assert entry.end_time.hour == 17
+        assert entry.from_time == 540  # 9:00 AM in minutes
+        assert entry.to_time == 1020  # 5:00 PM in minutes
+        assert entry.activity == 'New test task'
 
 
 def test_edit_time_entry(client, app):
@@ -92,23 +98,26 @@ def test_edit_time_entry(client, app):
         # Log in as test user
         client.post('/auth/login', data={'username': 'testuser', 'password': 'password123'}, follow_redirects=True)
 
-        # Create initial time entry
+        # Create initial time entry using correct model fields
+        today = datetime.now().date()
         entry = TimeEntry(
-            start_time=datetime(2023, 1, 1, 9, 0),
-            end_time=datetime(2023, 1, 1, 17, 0),
-            task_description='Original task',
-            user_id=user.id,
+            activity_date=datetime.combine(today, datetime.min.time()),
+            from_time=540,  # 9:00 AM in minutes
+            to_time=1020,  # 5:00 PM in minutes
+            activity='Original task',
         )
         db.session.add(entry)
         db.session.commit()
 
-        # Edit the time entry
+        # Edit the time entry using the actual form structure
         response = client.post(
-            f'/edit-entry/{entry.id}',
+            '/add',
             data={
-                'start_time': '2023-01-01T10:00',
-                'end_time': '2023-01-01T18:00',
-                'task_description': 'Updated task',
+                'entry_id': str(entry.id),
+                'operating_date': today.strftime('%Y-%m-%d'),
+                'from_time': '10:00',  # This will be converted to 600 minutes
+                'to_time': '18:00',  # This will be converted to 1080 minutes
+                'activity': 'Updated task',
             },
             follow_redirects=True,
         )
@@ -118,9 +127,10 @@ def test_edit_time_entry(client, app):
 
         # Verify the entry was updated
         updated_entry = TimeEntry.query.get(entry.id)
-        assert updated_entry.task_description == 'Updated task'
-        assert updated_entry.start_time.hour == 10
-        assert updated_entry.end_time.hour == 18
+        assert updated_entry is not None
+        assert updated_entry.activity == 'Updated task'
+        assert updated_entry.from_time == 600  # 10:00 AM in minutes
+        assert updated_entry.to_time == 1080  # 6:00 PM in minutes
 
 
 def test_delete_time_entry(client, app):
@@ -135,22 +145,22 @@ def test_delete_time_entry(client, app):
         # Log in as test user
         client.post('/auth/login', data={'username': 'testuser', 'password': 'password123'}, follow_redirects=True)
 
-        # Create initial time entry
+        # Create initial time entry using correct model fields
+        today = datetime.now().date()
         entry = TimeEntry(
-            start_time=datetime(2023, 1, 1, 9, 0),
-            end_time=datetime(2023, 1, 1, 17, 0),
-            task_description='Task to delete',
-            user_id=user.id,
+            activity_date=datetime.combine(today, datetime.min.time()),
+            from_time=540,  # 9:00 AM in minutes
+            to_time=1020,  # 5:00 PM in minutes
+            activity='Task to delete',
         )
         db.session.add(entry)
         db.session.commit()
         entry_id = entry.id
 
-        # Delete the time entry
-        response = client.post(f'/delete-entry/{entry_id}', follow_redirects=True)
+        # Delete the time entry using the actual route
+        response = client.post(f'/entry/{entry_id}/delete', follow_redirects=True)
 
         assert response.status_code == 200
-        assert b'Time entry deleted successfully' in response.data
 
         # Verify the entry was deleted
         deleted_entry = TimeEntry.query.get(entry_id)

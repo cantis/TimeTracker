@@ -16,9 +16,9 @@ def test_weekly_report_get(client, app):
     # Arrange
     with app.app_context():
         # Create admin user for login
-        from app.service.user_service import UserService
+        from app.service.user_service import create_user
 
-        admin_user, _ = UserService.create_user('admin', 'admin@test.com', 'admin123', is_admin=True)
+        admin_user = create_user('admin', 'admin@test.com', 'admin123', is_admin=True)
         assert admin_user is not None
 
     login(client)
@@ -37,9 +37,9 @@ def test_weekly_report_post(client, app):
     # Arrange
     with app.app_context():
         # Create admin user for login
-        from app.service.user_service import UserService
+        from app.service.user_service import create_user
 
-        admin_user, _ = UserService.create_user('admin', 'admin@test.com', 'admin123', is_admin=True)
+        admin_user = create_user('admin', 'admin@test.com', 'admin123', is_admin=True)
         assert admin_user is not None
 
     login(client)

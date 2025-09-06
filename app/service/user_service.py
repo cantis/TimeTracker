@@ -9,35 +9,6 @@ from sqlalchemy.exc import IntegrityError
 from app.models import User, db
 
 
-class UpdateUserError(Exception):
-    """Custom exception for user update operations."""
-
-    def __init__(self, message: str, user_id: Optional[int] = None):
-        """Initialize the exception with a message and optional user ID."""
-        self.message = message
-        self.user_id = user_id
-        super().__init__(self.message)
-
-
-class CreateUserError(Exception):
-    """Custom exception for user creation operations."""
-
-    def __init__(self, message: str):
-        """Initialize the exception with a message."""
-        self.message = message
-        super().__init__(self.message)
-
-
-class DeleteUserError(Exception):
-    """Custom exception for user deletion operations."""
-
-    def __init__(self, message: str, user_id: Optional[int] = None):
-        """Initialize the exception with a message and optional user ID."""
-        self.message = message
-        self.user_id = user_id
-        super().__init__(self.message)
-
-
 def create_user(
     username: str,
     email: str,
@@ -124,23 +95,7 @@ def update_user(
     is_admin: Optional[bool] = None,
     is_active: Optional[bool] = None,
 ) -> User:
-    """
-    Update an existing user.
-
-    Args:
-        user_id: ID of the user to update
-        username: New username (optional)
-        email: New email (optional)
-        password: New password (optional)
-        is_admin: New admin status (optional)
-        is_active: New active status (optional)
-
-    Returns:
-        Updated User object
-
-    Raises:
-        UpdateUserError: If user update fails for any reason
-    """
+    """Update user detail"""
     try:
         current_app.logger.debug(
             f'Updating user {user_id} with username={username}, email={email}, '
@@ -232,12 +187,7 @@ def delete_user(user_id: int) -> None:
 
 
 def authenticate_user(username: str, password: str) -> Optional[User]:
-    """
-    Authenticate a user with username/email and password.
-
-    Returns:
-        User object if authentication successful, None otherwise.
-    """
+    """Authenticate a user with username/email and password."""
     # Try to find user by username or email
     user = User.query.filter(db.or_(User.username == username, User.email == username)).first()
 
@@ -268,3 +218,36 @@ def create_default_admin() -> Optional[User]:
         current_app.logger.info(f'Created default admin user: {default_username}')
         return admin_user
     return None
+
+
+# region Custom Exceptions
+class UpdateUserError(Exception):
+    """Custom exception for user update operations."""
+
+    def __init__(self, message: str, user_id: Optional[int] = None):
+        """Initialize the exception with a message and optional user ID."""
+        self.message = message
+        self.user_id = user_id
+        super().__init__(self.message)
+
+
+class CreateUserError(Exception):
+    """Custom exception for user creation operations."""
+
+    def __init__(self, message: str):
+        """Initialize the exception with a message."""
+        self.message = message
+        super().__init__(self.message)
+
+
+class DeleteUserError(Exception):
+    """Custom exception for user deletion operations."""
+
+    def __init__(self, message: str, user_id: Optional[int] = None):
+        """Initialize the exception with a message and optional user ID."""
+        self.message = message
+        self.user_id = user_id
+        super().__init__(self.message)
+
+
+# endregion
