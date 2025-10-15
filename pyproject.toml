@@ -25,5 +25,11 @@ dev = [
     "ty>=0.0.1a14",
 ]
 
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
 [project.license]
 file = "LICENCE.md"
+
+

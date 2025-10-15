@@ -19,7 +19,7 @@ load_dotenv()
 
 
 def create_app(config_overrides: dict | None = None) -> Flask:
-    """Create and configure Flask application."""
+    """Create and configure Flask application. (application factory pattern)"""
 
     app = Flask(__name__)
 
@@ -37,9 +37,11 @@ def create_app(config_overrides: dict | None = None) -> Flask:
     db.init_app(app)
 
     # Initialize Flask-Login
-    login_manager = LoginManager()
+    # Note: type ignore is used to suppress type checking issues with Flask-Login because of
+    # an incompatibility between Flask-Login and Flask's type hints.
+    login_manager: LoginManager = LoginManager()
     login_manager.init_app(app)
-    login_manager.login_view = 'auth.login'
+    login_manager.login_view = 'auth.login'  # type: ignore[attr-defined]
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.login_message_category = 'info'
 

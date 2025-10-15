@@ -30,7 +30,7 @@ def ensure_directory(path: Path) -> None:
         sys.exit(1)
 
 
-# Ensure directories exist
+# Ensure directories exist if using SQLite database
 if os.environ.get('SQLALCHEMY_DATABASE_URI', '').startswith('sqlite:///data/'):
     ensure_directory(data_dir)
 ensure_directory(instance_dir)
