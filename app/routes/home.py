@@ -15,6 +15,7 @@ home_bp = Blueprint('home', __name__)
 # region Helper Functions
 def parse_time_to_minutes(value) -> int:
     """Converts a time value to minutes past midnight."""
+    # Note that value can be an int (minutes), or a string in 'HH:MM' format so no type hint.
     if value is None:
         return 0
     if isinstance(value, int):
@@ -34,6 +35,8 @@ def parse_time_to_minutes(value) -> int:
 def format_time_for_display(value) -> str:
     """Converts a time value to display format (e.g., '8:45 AM')."""
     minutes = parse_time_to_minutes(value)
+    # Value is likely in minutes past midnight (int) but we handle other cases in parse_time_to_minutes,
+    # we don't set a type hint for value for that reason.
 
     # Convert minutes past midnight to hours and minutes
     hours = minutes // 60
@@ -47,7 +50,10 @@ def format_time_for_display(value) -> str:
     am_pm = 'AM' if hours < 12 else 'PM'
 
     return f'{display_hour}:{mins:02d} {am_pm}'
+
+
 # endregion
+
 
 # region Forms
 class AddTimeEntryForm(FlaskForm):
@@ -58,28 +64,35 @@ class AddTimeEntryForm(FlaskForm):
     to_time = StringField('End Time (Minutes Past Midnight)', validators=[DataRequired()])
     activity = StringField('Activity', validators=[DataRequired()])
     time_out = IntegerField('Time Out', validators=[Optional()])
+
+
 # endregion
+
 
 # region Routes
 @home_bp.route('/')
 @login_required
 def index() -> str:
+    """Default home page showing time entries for a specific date."""
+
+    # Get date filter from query parameters, default to today
     date_filter = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     try:
         operating_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
     except ValueError:
         operating_date = datetime.now().date()
 
+    # Get entries for the operating date
     entries = (
         TimeEntry.query.filter(db.func.date(TimeEntry.activity_date) == operating_date).order_by('from_time').all()
     )
 
-    # Add formatted times to each entry for display
+    # Add formatted times to each time entry (if there are entries)
     for entry in entries:
         entry.from_time_display = format_time_for_display(entry.from_time)
         entry.to_time_display = format_time_for_display(entry.to_time)
 
-        # Calculate duration in minutes for display
+        # Calculate duration in minutes for display for each entry
         from_minutes = parse_time_to_minutes(entry.from_time)
         to_minutes = parse_time_to_minutes(entry.to_time)
         entry.duration_minutes = to_minutes - from_minutes
@@ -202,5 +215,6 @@ def get_entries() -> str:
     date_filter = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     entries = TimeEntry.query.filter(db.func.date(TimeEntry.activity_date) == date_filter).order_by('from_time').all()
     return render_template('home/entries.html', entries=entries)
+
 
 # endregion
