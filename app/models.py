@@ -75,7 +75,7 @@ class TimeEntry(db.Model):
     from_time = Column(Integer, nullable=False)  # Stored in minutes past midnight
     to_time = Column(Integer, nullable=False)  # Stored in minutes past midnight
     activity = Column(String, nullable=True)
-    time_out = Column(Integer, nullable=True)  # Stored in minutes past midnight
+    time_out = Column(Boolean, nullable=False)  # Indicates if the entry is a time-out entry (untracked time)
 
     def __init__(
         self,
@@ -83,7 +83,7 @@ class TimeEntry(db.Model):
         from_time: int,
         to_time: int,
         activity: Optional[str] = None,
-        time_out: Optional[int] = None,
+        time_out: bool = False,
     ):
         """Initialize TimeEntry with proper type hints for linters."""
         self.activity_date = activity_date

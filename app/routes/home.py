@@ -26,7 +26,8 @@ def parse_time_to_minutes(value) -> int:
         if ':' in value:
             try:
                 hour, minute = map(int, value.split(':'))
-                return hour * 60 + minute
+                result = hour * 60 + minute
+                return result
             except (ValueError, IndexError):
                 return 0
     return 0
@@ -195,7 +196,6 @@ def add_entry() -> Response:
                     )
                     db.session.add(entry)
                     flash('Time entry added successfully.', 'success')
-
             db.session.commit()
         else:
             for field, errors in form.errors.items():
