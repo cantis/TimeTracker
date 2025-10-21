@@ -10,6 +10,8 @@
 
 """Script to create the PostgreSQL database and user for TimeTracker."""
 # Evan Young October 2025
+# This is a stand-alone script that can be run with `uv run scripts/create_db.py` and
+# does not require the full application context. (.venv)
 
 from getpass import getpass
 

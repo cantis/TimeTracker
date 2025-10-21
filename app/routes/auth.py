@@ -1,4 +1,4 @@
-"""Authentication routes for login and logout."""
+"""Authentication routes for login, logout, and profile management."""
 
 import datetime
 
@@ -6,7 +6,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
 from app.models import db
-from app.service.user_service import authenticate_user
+from app.service.user_service import UpdateUserError, authenticate_user, update_user
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -57,10 +57,32 @@ def logout():
     return redirect(url_for('auth.login'))
 
 
-@auth_bp.route('/profile')
+@auth_bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    """Display user profile."""
+    """Display and update user profile.
+
+    Allows the authenticated user to update their email address.
+    """
+    if request.method == 'POST':
+        new_email = request.form.get('email', '').strip()
+
+        # Basic validation
+        if not new_email:
+            flash('Email is required.', 'error')
+            return render_template('auth/profile.html', user=current_user)
+
+        if '@' not in new_email or len(new_email) > 120:
+            flash('Please enter a valid email address.', 'error')
+            return render_template('auth/profile.html', user=current_user)
+
+        try:
+            update_user(user_id=int(current_user.id), email=new_email)
+            flash('Email updated successfully.', 'success')
+            return redirect(url_for('auth.profile'))
+        except UpdateUserError as e:
+            flash(f'Error updating email: {e.message}', 'error')
+
     return render_template('auth/profile.html', user=current_user)
 
 

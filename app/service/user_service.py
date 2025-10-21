@@ -14,7 +14,7 @@ def create_user(
     email: str,
     password: str,
     is_admin: bool = False,
-    is_active: bool = True,
+    user_active: bool = True,
 ) -> User:
     """Create a new user."""
     try:
@@ -44,7 +44,7 @@ def create_user(
             email=email,
             password=password,
             is_admin=is_admin,
-            is_active=is_active,
+            user_active=user_active,
         )
 
         db.session.add(user)
@@ -93,13 +93,13 @@ def update_user(
     email: Optional[str] = None,
     password: Optional[str] = None,
     is_admin: Optional[bool] = None,
-    is_active: Optional[bool] = None,
+    user_active: Optional[bool] = None,
 ) -> User:
     """Update user detail"""
     try:
         current_app.logger.debug(
             f'Updating user {user_id} with username={username}, email={email}, '
-            f'is_admin={is_admin}, is_active={is_active}'
+            f'is_admin={is_admin}, user_active={user_active}'
         )
 
         user = User.query.get(user_id)
@@ -127,8 +127,8 @@ def update_user(
         if is_admin is not None:
             user.is_admin = is_admin
 
-        if is_active is not None:
-            user.user_active = is_active
+        if user_active is not None:
+            user.user_active = user_active
 
         db.session.commit()
 
@@ -211,7 +211,7 @@ def create_default_admin() -> Optional[User]:
             email=default_email,
             password=default_password,
             is_admin=True,
-            is_active=True,
+            user_active=True,
         )
         db.session.add(admin_user)
         db.session.commit()

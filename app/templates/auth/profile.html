@@ -16,14 +16,20 @@
                     <div class="row">
                         <div class="col-md-6">
                             <h5>Account Information</h5>
+                            <form method="POST" class="mb-3">
                             <div class="mb-3">
                                 <label class="form-label"><strong>Username:</strong></label>
                                 <p class="form-control-plaintext">{{ user.username }}</p>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label"><strong>Email:</strong></label>
-                                <p class="form-control-plaintext">{{ user.email }}</p>
+                                <label for="email" class="form-label"><strong>Email:</strong></label>
+                                <input type="email" id="email" name="email" class="form-control" maxlength="120" value="{{ user.email }}" required>
+                                <div class="form-text">Update your email address. Must be unique and valid.</div>
                             </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-envelope-check"></i> Update Email
+                            </button>
+                            </form>
                             <div class="mb-3">
                                 <label class="form-label"><strong>Role:</strong></label>
                                 <p class="form-control-plaintext">

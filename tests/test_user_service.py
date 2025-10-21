@@ -319,20 +319,20 @@ class TestUserService:
         """Test updating user's active status."""
         with app.app_context():
             # Arrange
-            user = create_user('testuser', 'test@example.com', 'password123', is_active=True)
+            user = create_user('testuser', 'test@example.com', 'password123', user_active=True)
 
             # Act
-            updated_user = update_user(user.id, is_active=False)
+            updated_user = update_user(user.id, user_active=False)
 
             # Assert
             assert updated_user is not None
-            assert updated_user.is_active is False
+            assert updated_user.user_active is False
 
     def test_update_user_multiple_fields_success(self, app):
         """Test updating multiple user fields at once."""
         with app.app_context():
             # Arrange
-            user = create_user('oldname', 'old@example.com', 'oldpassword', is_admin=False, is_active=True)
+            user = create_user('oldname', 'old@example.com', 'oldpassword', is_admin=False, user_active=True)
 
             # Act
             updated_user = update_user(
@@ -341,7 +341,7 @@ class TestUserService:
                 email='new@example.com',
                 password='newpassword123',
                 is_admin=True,
-                is_active=False,
+                user_active=False,
             )
 
             # Assert
@@ -515,7 +515,7 @@ class TestUserService:
         """Test authentication with inactive user."""
         with app.app_context():
             # Arrange
-            create_user('testuser', 'test@example.com', 'password123', is_active=False)
+            create_user('testuser', 'test@example.com', 'password123', user_active=False)
 
             # Act
             authenticated_user = authenticate_user('testuser', 'password123')
@@ -562,25 +562,25 @@ class TestUserService:
             # Assert
             assert admin_user is None
 
-    @patch.dict(
-        os.environ,
-        {
-            'DEFAULT_ADMIN_USERNAME': 'customadmin',
-            'DEFAULT_ADMIN_EMAIL': 'custom@admin.com',
-            'DEFAULT_ADMIN_PASSWORD': 'custompass123',
-        },
-    )
-    def test_create_default_admin_with_custom_env_vars(self, app):
-        """Test creating default admin with custom environment variables."""
-        with app.app_context():
-            # Act
-            admin_user = create_default_admin()
+        @patch.dict(
+            os.environ,
+            {
+                'DEFAULT_ADMIN_USERNAME': 'customadmin',
+                'DEFAULT_ADMIN_EMAIL': 'custom@admin.com',
+                'DEFAULT_ADMIN_PASSWORD': 'custompass123',
+            },
+        )
+        def test_create_default_admin_with_custom_env_vars(self, app):
+            """Test creating default admin with custom environment variables."""
+            with app.app_context():
+                # Act
+                admin_user = create_default_admin()
 
-            # Assert
-            assert admin_user is not None
-            assert admin_user.username == 'customadmin'
-            assert admin_user.email == 'custom@admin.com'
-            assert admin_user.check_password('custompass123')
-            assert admin_user.is_admin is True
+                # Assert
+                assert admin_user is not None
+                assert admin_user.username == 'customadmin'
+                assert admin_user.email == 'custom@admin.com'
+                assert admin_user.check_password('custompass123')
+                assert admin_user.is_admin is True
 
     # endregion
