@@ -29,14 +29,14 @@ class User(UserMixin, db.Model):
         email: str,
         password: str,
         is_admin: bool = False,
-        user_active: bool = True,
+        is_active: bool = True,
     ):
         """Initialize User with proper type hints and password hashing."""
         self.username = username
         self.email = email
         self.set_password(password)
         self.is_admin = is_admin
-        self.user_active = user_active
+        self.user_active = is_active
 
     def set_password(self, password: str) -> None:
         """Hash and set the user's password."""

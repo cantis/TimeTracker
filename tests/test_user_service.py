@@ -319,10 +319,10 @@ class TestUserService:
         """Test updating user's active status."""
         with app.app_context():
             # Arrange
-            user = create_user('testuser', 'test@example.com', 'password123', user_active=True)
+            user = create_user('testuser', 'test@example.com', 'password123', is_active=True)
 
             # Act
-            updated_user = update_user(user.id, user_active=False)
+            updated_user = update_user(user.id, is_active=False)
 
             # Assert
             assert updated_user is not None
@@ -332,7 +332,7 @@ class TestUserService:
         """Test updating multiple user fields at once."""
         with app.app_context():
             # Arrange
-            user = create_user('oldname', 'old@example.com', 'oldpassword', is_admin=False, user_active=True)
+            user = create_user('oldname', 'old@example.com', 'oldpassword', is_admin=False, is_active=True)
 
             # Act
             updated_user = update_user(
@@ -341,7 +341,7 @@ class TestUserService:
                 email='new@example.com',
                 password='newpassword123',
                 is_admin=True,
-                user_active=False,
+                is_active=False,
             )
 
             # Assert
@@ -515,7 +515,7 @@ class TestUserService:
         """Test authentication with inactive user."""
         with app.app_context():
             # Arrange
-            create_user('testuser', 'test@example.com', 'password123', user_active=False)
+            create_user('testuser', 'test@example.com', 'password123', is_active=False)
 
             # Act
             authenticated_user = authenticate_user('testuser', 'password123')
