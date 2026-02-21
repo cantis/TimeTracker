@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 from flask import Flask
 from flask_login import LoginManager
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from app.config import Config
 from app.models import User, db
@@ -25,10 +26,14 @@ def create_app(config_overrides: dict | None = None) -> Flask:
 
     # Load configuration
     app.config.from_object(Config)
+    app.config['APPLICATION_ROOT'] = os.getenv('APPLICATION_ROOT', '/')
 
     # Apply any configuration overrides (useful for testing)
     if config_overrides:
         app.config.update(config_overrides)
+
+    # Configure ProxyFix middleware for reverse proxy support
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     # Ensure instance folder exists
     os.makedirs(app.instance_path, exist_ok=True)
