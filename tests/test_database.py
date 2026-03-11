@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from app.models import TimeEntry, db
+from app.models import TimeEntry, User, db
 
 
 def test_database_configuration(app):
@@ -19,11 +19,16 @@ def test_database_write_and_read(app):
     """Verify database operations work correctly."""
     # Arrange
     with app.app_context():
+        test_user = User(username='dbtest', email='dbtest@example.com', password='password123')
+        db.session.add(test_user)
+        db.session.flush()  # Get user.id without full commit
+
         # Act - Create test entry
         entry = TimeEntry(
             activity_date=datetime.now(),
             from_time=540,  # 9:00 AM
             to_time=570,  # 9:30 AM
+            user_id=test_user.id,
             activity='Test Database Connection',
         )
         db.session.add(entry)
@@ -37,4 +42,5 @@ def test_database_write_and_read(app):
 
         # Clean up
         db.session.delete(saved_entry)
+        db.session.delete(test_user)
         db.session.commit()

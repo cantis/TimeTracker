@@ -7,6 +7,7 @@
         <div class="card mb-2">
             <div class="card-body">
                 <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="mb-3">
                         <label for="username" class="form-label">
                             <i class="bi bi-person"></i> username or email
@@ -38,7 +39,7 @@
         </div>
 
         <div class="text-center text-muted">
-            <small>Default admin: username=admin, password=admin123</small>
+            <small>Contact your administrator if you need access.</small>
         </div>
     </div>
 </div>

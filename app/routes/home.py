@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for
-from flask_login import login_required
+from flask_login import current_user, login_required
 from flask_wtf import FlaskForm
 from werkzeug.wrappers.response import Response
 from wtforms import IntegerField, StringField
@@ -83,9 +83,14 @@ def index() -> str:
     except ValueError:
         operating_date = datetime.now().date()
 
-    # Get entries for the operating date
+    # Get entries for the operating date, scoped to the current user
     entries = (
-        TimeEntry.query.filter(db.func.date(TimeEntry.activity_date) == operating_date).order_by('from_time').all()
+        TimeEntry.query.filter(
+            db.func.date(TimeEntry.activity_date) == operating_date,
+            TimeEntry.user_id == current_user.id,
+        )
+        .order_by('from_time')
+        .all()
     )
 
     # Add formatted times to each time entry (if there are entries)
@@ -113,6 +118,8 @@ def index() -> str:
 def get_entry(entry_id: int):
     """Get a specific time entry by ID."""
     entry = TimeEntry.query.get_or_404(entry_id)
+    if entry.user_id != current_user.id:
+        abort(403)
 
     # Format times as HH:MM for the form
     def minutes_to_time_string(minutes):
@@ -148,6 +155,8 @@ def get_entry(entry_id: int):
 def delete_entry(entry_id: int):
     """Delete a time entry by ID."""
     entry = TimeEntry.query.get_or_404(entry_id)
+    if entry.user_id != current_user.id:
+        abort(403)
 
     try:
         # Save date for redirect
@@ -178,6 +187,8 @@ def add_entry() -> Response:
 
             if entry_id:
                 entry = TimeEntry.query.get_or_404(int(entry_id))
+                if entry.user_id != current_user.id:
+                    abort(403)
                 if operating_date:
                     entry.activity_date = datetime.strptime(operating_date, '%Y-%m-%d')
                 entry.from_time = parse_time_to_minutes(request.form.get('from_time'))
@@ -191,6 +202,7 @@ def add_entry() -> Response:
                         activity_date=datetime.strptime(operating_date, '%Y-%m-%d'),
                         from_time=parse_time_to_minutes(request.form.get('from_time') or '0'),
                         to_time=parse_time_to_minutes(request.form.get('to_time') or '0'),
+                        user_id=current_user.id,
                         activity=request.form.get('activity'),
                         time_out=bool(checkbox_value),
                     )
@@ -213,7 +225,14 @@ def add_entry() -> Response:
 @login_required
 def get_entries() -> str:
     date_filter = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
-    entries = TimeEntry.query.filter(db.func.date(TimeEntry.activity_date) == date_filter).order_by('from_time').all()
+    entries = (
+        TimeEntry.query.filter(
+            db.func.date(TimeEntry.activity_date) == date_filter,
+            TimeEntry.user_id == current_user.id,
+        )
+        .order_by('from_time')
+        .all()
+    )
     return render_template('home/entries.html', entries=entries)
 
 

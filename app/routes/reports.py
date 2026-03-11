@@ -3,7 +3,7 @@
 from datetime import date
 
 from flask import Blueprint, render_template, request
-from flask_login import login_required
+from flask_login import current_user, login_required
 
 from app.service.weekly_report_service import WeeklyReportService
 
@@ -32,7 +32,7 @@ def weekly_report():
             start_date, end_date = service.get_default_week_dates()
 
         # Generate the report
-        report_data = service.generate_weekly_report(start_date, end_date)
+        report_data = service.generate_weekly_report(start_date, end_date, current_user.id)
 
         return render_template('reports/weekly_report.html', **report_data)
 

@@ -41,6 +41,7 @@ def test_weekly_report_post(client, app):
 
         admin_user = create_user('admin', 'admin@test.com', 'admin123', is_admin=True)
         assert admin_user is not None
+        admin_user_id = admin_user.id
 
     login(client)
     start_date = date(2025, 5, 18)
@@ -51,6 +52,7 @@ def test_weekly_report_post(client, app):
             activity_date=datetime.combine(start_date, datetime.min.time()),
             from_time=480,  # 8:00 AM
             to_time=540,  # 9:00 AM
+            user_id=admin_user_id,
             activity='Test Activity',
         )
         db.session.add(entry)

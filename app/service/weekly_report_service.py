@@ -78,11 +78,15 @@ class WeeklyReportService:
 
         return sunday, saturday
 
-    def get_entries_for_period(self, start_date: date, end_date: date) -> List[TimeEntry]:
-        """Get all time entries for the specified date range."""
+    def get_entries_for_period(self, start_date: date, end_date: date, user_id: int) -> List[TimeEntry]:
+        """Get all time entries for the specified date range, scoped to a user."""
         return (
             TimeEntry.query.filter(
-                and_(func.date(TimeEntry.activity_date) >= start_date, func.date(TimeEntry.activity_date) <= end_date)
+                and_(
+                    func.date(TimeEntry.activity_date) >= start_date,
+                    func.date(TimeEntry.activity_date) <= end_date,
+                    TimeEntry.user_id == user_id,
+                )
             )
             .order_by(TimeEntry.activity_date, TimeEntry.from_time)
             .all()
@@ -173,10 +177,10 @@ class WeeklyReportService:
             'sorted_activities': sorted_activities,
         }
 
-    def generate_weekly_report(self, start_date: date, end_date: date) -> Dict:
+    def generate_weekly_report(self, start_date: date, end_date: date, user_id: int) -> Dict:
         """Generate a comprehensive weekly report."""
-        # Get all entries for the period
-        entries = self.get_entries_for_period(start_date, end_date)
+        # Get all entries for the period, scoped to the user
+        entries = self.get_entries_for_period(start_date, end_date, user_id)
 
         # Calculate daily totals
         daily_totals = self.calculate_daily_totals(entries)

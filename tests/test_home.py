@@ -30,12 +30,14 @@ def test_index_route(client, app):
             activity_date=datetime.combine(today, datetime.min.time()),
             from_time=540,  # 9:00 AM (9 * 60 = 540 minutes)
             to_time=1020,  # 5:00 PM (17 * 60 = 1020 minutes)
+            user_id=user.id,
             activity='Test task 1',
         )
         entry2 = TimeEntry(
             activity_date=datetime.combine(today, datetime.min.time()),
             from_time=600,  # 10:00 AM (10 * 60 = 600 minutes)
             to_time=1080,  # 6:00 PM (18 * 60 = 1080 minutes)
+            user_id=user.id,
             activity='Test task 2',
         )
         db.session.add(entry1)
@@ -104,6 +106,7 @@ def test_edit_time_entry(client, app):
             activity_date=datetime.combine(today, datetime.min.time()),
             from_time=540,  # 9:00 AM in minutes
             to_time=1020,  # 5:00 PM in minutes
+            user_id=user.id,
             activity='Original task',
         )
         db.session.add(entry)
@@ -151,6 +154,7 @@ def test_delete_time_entry(client, app):
             activity_date=datetime.combine(today, datetime.min.time()),
             from_time=540,  # 9:00 AM in minutes
             to_time=1020,  # 5:00 PM in minutes
+            user_id=user.id,
             activity='Task to delete',
         )
         db.session.add(entry)

@@ -3,7 +3,8 @@ from typing import Optional
 
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Boolean, Column, DateTime, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 from werkzeug.security import check_password_hash, generate_password_hash
 
 db = SQLAlchemy()
@@ -71,17 +72,21 @@ class TimeEntry(db.Model):
     __tablename__ = 'time_entries'
 
     id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     activity_date = Column(DateTime, nullable=False, default=datetime.datetime.now(datetime.timezone.utc))
     from_time = Column(Integer, nullable=False)  # Stored in minutes past midnight
     to_time = Column(Integer, nullable=False)  # Stored in minutes past midnight
     activity = Column(String, nullable=True)
     time_out = Column(Boolean, nullable=False)  # Indicates if the entry is a time-out entry (untracked time)
 
+    user = relationship('User', backref='time_entries')
+
     def __init__(
         self,
         activity_date: datetime.datetime,
         from_time: int,
         to_time: int,
+        user_id: int,
         activity: Optional[str] = None,
         time_out: bool = False,
     ):
@@ -89,5 +94,6 @@ class TimeEntry(db.Model):
         self.activity_date = activity_date
         self.from_time = from_time
         self.to_time = to_time
+        self.user_id = user_id
         self.activity = activity
         self.time_out = time_out

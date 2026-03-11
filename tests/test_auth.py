@@ -211,3 +211,72 @@ class TestAuthRoutes:
             unchanged_user = User.query.get(user1.id)
             assert unchanged_user is not None  # Type assertion
             assert unchanged_user.email == 'user1@example.com'
+
+    def test_login_success(self, client, app):
+        """Test successful login redirects to home page."""
+        with app.app_context():
+            create_user('loginuser', 'login@example.com', 'password123')
+
+        response = client.post(
+            '/auth/login',
+            data={'username': 'loginuser', 'password': 'password123'},
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b'Welcome back' in response.data
+
+    def test_login_invalid_credentials(self, client, app):
+        """Test login with wrong password shows error."""
+        with app.app_context():
+            create_user('loginuser', 'login@example.com', 'password123')
+
+        response = client.post(
+            '/auth/login',
+            data={'username': 'loginuser', 'password': 'wrongpassword'},
+        )
+
+        assert response.status_code == 200
+        assert b'Invalid username or password' in response.data
+
+    def test_login_unknown_user(self, client):
+        """Test login with unknown username shows error."""
+        response = client.post(
+            '/auth/login',
+            data={'username': 'nobody', 'password': 'password123'},
+        )
+
+        assert response.status_code == 200
+        assert b'Invalid username or password' in response.data
+
+    def test_login_already_authenticated_redirects(self, client, app):
+        """Test that visiting login while authenticated redirects to home."""
+        with app.app_context():
+            user = create_user('loginuser', 'login@example.com', 'password123')
+
+            with client.session_transaction() as sess:
+                sess['_user_id'] = str(user.id)
+                sess['_fresh'] = True
+
+        response = client.get('/auth/login')
+
+        assert response.status_code == 302
+        assert '/' in response.location
+
+    def test_logout(self, client, app):
+        """Test logout clears session and redirects to login."""
+        with app.app_context():
+            user = create_user('loginuser', 'login@example.com', 'password123')
+
+            with client.session_transaction() as sess:
+                sess['_user_id'] = str(user.id)
+                sess['_fresh'] = True
+
+        response = client.get('/auth/logout', follow_redirects=True)
+
+        assert response.status_code == 200
+        assert b'Goodbye' in response.data
+
+        # Verify protected route now redirects
+        protected = client.get('/')
+        assert protected.status_code == 302
