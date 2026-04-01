@@ -9,6 +9,7 @@ from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from app.config import Config
+from app.migrations import run_migrations
 from app.models import User, db
 from app.routes.admin import admin_bp
 from app.routes.auth import auth_bp
@@ -64,6 +65,7 @@ def create_app(config_overrides: dict | None = None) -> Flask:
 
     with app.app_context():
         db.create_all()
+        run_migrations(db)
         # Create default admin user if no users exist (skip in tests)
         if not (app.config.get('SKIP_DEFAULT_ADMIN', False) or os.getenv('SKIP_DEFAULT_ADMIN')):
             create_default_admin()
