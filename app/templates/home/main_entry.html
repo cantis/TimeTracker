@@ -16,15 +16,15 @@
             <button type="button" class="btn btn-secondary btn-sm" id="set_today_button">Today</button>
         </div>
         <!-- Card with one row for time and description -->
-        <div class="card mb-2 col-md-9">
+        <div class="card mb-2 col-md-12" id="entry_card">
             <div class="card-body">
                 <!-- Row with no extra wide spacing -->
                 <div class="row justify-content-start align-items-start g-2">
                     <!-- From Time -->
                     <div class="col-auto">
                         <h5>from</h5>
-                        <select class="form-control-sm" id="from_time" name="from_time">
-                            {% for hour in range(7, 19) %}
+                        <select class="form-select form-select-sm" id="from_time" name="from_time">
+                            {% for hour in range(6, 20) %}
                             {% for minute in [0, 15, 30, 45] %}
                             {% set display_hour = hour % 12 %}
 
@@ -44,8 +44,8 @@
                     <!-- To Time -->
                     <div class="col-auto">
                         <h5>to</h5>
-                        <select class="form-control-sm" id="to_time" name="to_time">
-                            {% for hour in range(7, 19) %}
+                        <select class="form-select form-select-sm" id="to_time" name="to_time">
+                            {% for hour in range(6, 20) %}
                             {% for minute in [0, 15, 30, 45] %}
                             {% set display_hour = hour % 12 %}
 
@@ -59,14 +59,14 @@
                                 value="{{ hour }}:{{ '%02d' % minute }}">{{ display_hour }}:{{ '%02d' % minute }} {{
                                 am_pm }}</option>
                                 {% endfor %}
-
                                 {% endfor %}
                         </select>
                     </div>
                     <!-- Activity Field -->
-                    <div class="col-auto">
+                    <div class="col-auto col-sm-5 col-md-4 col-lg-5">
                         <h5>activity</h5>
-                        <input class="form-control-sm" list="activity-options" id="activity" name="activity">
+                        <input class="form-control form-control-sm" list="activity-options" id="activity"
+                            name="activity">
                         <datalist id="activity-options">
                             {% for option in activity_options|default([]) %}
                             <option value="{{ option }}">{{ option }}</option>

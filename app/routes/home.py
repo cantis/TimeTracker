@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 from flask_wtf import FlaskForm
 from werkzeug.wrappers.response import Response
 from wtforms import IntegerField, StringField
@@ -11,8 +12,10 @@ from app.models import TimeEntry, db
 home_bp = Blueprint('home', __name__)
 
 
+# region Helper Functions
 def parse_time_to_minutes(value) -> int:
     """Converts a time value to minutes past midnight."""
+    # Note that value can be an int (minutes), or a string in 'HH:MM' format so no type hint.
     if value is None:
         return 0
     if isinstance(value, int):
@@ -23,7 +26,8 @@ def parse_time_to_minutes(value) -> int:
         if ':' in value:
             try:
                 hour, minute = map(int, value.split(':'))
-                return hour * 60 + minute
+                result = hour * 60 + minute
+                return result
             except (ValueError, IndexError):
                 return 0
     return 0
@@ -32,6 +36,8 @@ def parse_time_to_minutes(value) -> int:
 def format_time_for_display(value) -> str:
     """Converts a time value to display format (e.g., '8:45 AM')."""
     minutes = parse_time_to_minutes(value)
+    # Value is likely in minutes past midnight (int) but we handle other cases in parse_time_to_minutes,
+    # we don't set a type hint for value for that reason.
 
     # Convert minutes past midnight to hours and minutes
     hours = minutes // 60
@@ -47,7 +53,10 @@ def format_time_for_display(value) -> str:
     return f'{display_hour}:{mins:02d} {am_pm}'
 
 
-# Forms
+# endregion
+
+
+# region Forms
 class AddTimeEntryForm(FlaskForm):
     """Form for creating and editing time entries."""
 
@@ -58,25 +67,38 @@ class AddTimeEntryForm(FlaskForm):
     time_out = IntegerField('Time Out', validators=[Optional()])
 
 
-# Routes
+# endregion
+
+
+# region Routes
 @home_bp.route('/')
+@login_required
 def index() -> str:
+    """Default home page showing time entries for a specific date."""
+
+    # Get date filter from query parameters, default to today
     date_filter = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     try:
         operating_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
     except ValueError:
         operating_date = datetime.now().date()
 
+    # Get entries for the operating date, scoped to the current user
     entries = (
-        TimeEntry.query.filter(db.func.date(TimeEntry.activity_date) == operating_date).order_by('from_time').all()
+        TimeEntry.query.filter(
+            db.func.date(TimeEntry.activity_date) == operating_date,
+            TimeEntry.user_id == current_user.id,
+        )
+        .order_by('from_time')
+        .all()
     )
 
-    # Add formatted times to each entry for display
+    # Add formatted times to each time entry (if there are entries)
     for entry in entries:
         entry.from_time_display = format_time_for_display(entry.from_time)
         entry.to_time_display = format_time_for_display(entry.to_time)
 
-        # Calculate duration in minutes for display
+        # Calculate duration in minutes for display for each entry
         from_minutes = parse_time_to_minutes(entry.from_time)
         to_minutes = parse_time_to_minutes(entry.to_time)
         entry.duration_minutes = to_minutes - from_minutes
@@ -92,9 +114,12 @@ def index() -> str:
 
 
 @home_bp.route('/entry/<int:entry_id>', methods=['GET'])
+@login_required
 def get_entry(entry_id: int):
     """Get a specific time entry by ID."""
     entry = TimeEntry.query.get_or_404(entry_id)
+    if entry.user_id != current_user.id:
+        abort(403)
 
     # Format times as HH:MM for the form
     def minutes_to_time_string(minutes):
@@ -126,9 +151,12 @@ def get_entry(entry_id: int):
 
 
 @home_bp.route('/entry/<int:entry_id>/delete', methods=['POST'])
+@login_required
 def delete_entry(entry_id: int):
     """Delete a time entry by ID."""
     entry = TimeEntry.query.get_or_404(entry_id)
+    if entry.user_id != current_user.id:
+        abort(403)
 
     try:
         # Save date for redirect
@@ -146,6 +174,7 @@ def delete_entry(entry_id: int):
 
 
 @home_bp.route('/add', methods=['POST'])
+@login_required
 def add_entry() -> Response:
     """Create or update a time entry."""
     form = AddTimeEntryForm()
@@ -158,6 +187,8 @@ def add_entry() -> Response:
 
             if entry_id:
                 entry = TimeEntry.query.get_or_404(int(entry_id))
+                if entry.user_id != current_user.id:
+                    abort(403)
                 if operating_date:
                     entry.activity_date = datetime.strptime(operating_date, '%Y-%m-%d')
                 entry.from_time = parse_time_to_minutes(request.form.get('from_time'))
@@ -171,12 +202,12 @@ def add_entry() -> Response:
                         activity_date=datetime.strptime(operating_date, '%Y-%m-%d'),
                         from_time=parse_time_to_minutes(request.form.get('from_time') or '0'),
                         to_time=parse_time_to_minutes(request.form.get('to_time') or '0'),
+                        user_id=current_user.id,
                         activity=request.form.get('activity'),
                         time_out=bool(checkbox_value),
                     )
                     db.session.add(entry)
                     flash('Time entry added successfully.', 'success')
-
             db.session.commit()
         else:
             for field, errors in form.errors.items():
@@ -191,7 +222,18 @@ def add_entry() -> Response:
 
 
 @home_bp.route('/entries', methods=['GET'])
+@login_required
 def get_entries() -> str:
     date_filter = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
-    entries = TimeEntry.query.filter(db.func.date(TimeEntry.activity_date) == date_filter).order_by('from_time').all()
+    entries = (
+        TimeEntry.query.filter(
+            db.func.date(TimeEntry.activity_date) == date_filter,
+            TimeEntry.user_id == current_user.id,
+        )
+        .order_by('from_time')
+        .all()
+    )
     return render_template('home/entries.html', entries=entries)
+
+
+# endregion

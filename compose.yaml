@@ -3,9 +3,11 @@ services:
   server:
     build:
       args:
+        # VERSION_TAG is set by build_image.py from pyproject.toml version
         VERSION_TAG: ${VERSION_TAG:-latest}
       context: .
     container_name: time-tracker
+    # Image will be tagged with version from pyproject.toml when built via build_image.py
     image: time-tracker:${VERSION_TAG:-latest}
     volumes:
       - c:/temp/time-tracker:/app/data

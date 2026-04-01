@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>user management</h3>
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card mb-2">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> users</h5>
+                    <a href="{{ url_for('admin.add_user') }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-person-plus"></i> add user
+                    </a>
+                </div>
+
+                {% if users %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col"><i class="bi bi-person"></i> username</th>
+                                <th scope="col"><i class="bi bi-envelope"></i> email</th>
+                                <th scope="col"><i class="bi bi-shield"></i> role</th>
+                                <th scope="col"><i class="bi bi-toggle-on"></i> status</th>
+                                <th scope="col"><i class="bi bi-calendar"></i> created</th>
+                                <th scope="col"><i class="bi bi-clock"></i> last login</th>
+                                <th scope="col" class="text-center">actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>
+                                    <strong>{{ user.username }}</strong>
+                                    {% if user.id == current_user.id %}
+                                    <span class="badge bg-info ms-1">You</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user.email }}</td>
+                                <td>
+                                    {% if user.is_admin %}
+                                    <span class="badge bg-danger">Admin</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">User</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    {% if user.last_login %}
+                                    {{ user.last_login.strftime('%Y-%m-%d %H:%M') }}
+                                    {% else %}
+                                    <span class="text-muted">Never</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('admin.edit_user', user_id=user.id) }}"
+                                        class="btn btn-sm btn-outline-secondary" title="Edit user">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% if user.id != current_user.id %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger delete-user-btn"
+                                        data-user-id="{{ user.id }}" data-username="{{ user.username }}"
+                                        title="Delete user">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-people"></i> no users found
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="text-center">
+            <a href="{{ url_for('admin.settings') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> back to settings
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Handle delete user buttons
+        document.querySelectorAll('.delete-user-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const userId = this.getAttribute('data-user-id');
+                const username = this.getAttribute('data-username');
+
+                if (confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+                    deleteUser(userId, username);
+                }
+            });
+        });
+
+        function deleteUser(userId, username) {
+            fetch(`/admin/users/${userId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Reload the page to show updated user list
+                        window.location.reload();
+                    } else {
+                        alert(`Failed to delete user: ${data.message}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting user:', error);
+                    alert('Failed to delete user. Please try again.');
+                });
+        }
+    });
+</script>
+
+<style>
+    /* Make table header sticky when scrolling */
+    .table-responsive table thead th {
+        position: sticky;
+        top: 0;
+        background-color: white;
+        z-index: 1;
+    }
+</style>
+
+{% endblock %}
